@@ -1,0 +1,19 @@
+[user]
+  name = Gabriel Dezan
+  email = dezangabriel@gmail.com
+[color]
+  ui = auto
+[alias]
+  s = status
+  b = branch -vv
+  ca = commit --amend
+  last = log -1 HEAD
+  d = diff
+  fr = !git fetch && git rebase
+  so = branch --set-upstream-to=origin/master
+  l = log --all --graph --abbrev-commit --decorate
+  ol = log --all --graph --abbrev-commit --decorate --oneline
+  u = add -u
+[core]
+  editor = vim
+  pager = less -R
