@@ -54,8 +54,8 @@ alias venv2="source ~/.venv2/bin/activate"
 #source ~/.fonts/*.sh
 
 # Spaceship config
-SPACESHIP_GIT_STATUS_COLOR=109
-SPACESHIP_DIR_COLOR=208
+#SPACESHIP_GIT_STATUS_COLOR=109
+#SPACESHIP_DIR_COLOR=208
 SPACESHIP_PACKAGE_SHOW=false
 SPACESHIP_BATTERY_SHOW=false
 SPACESHIP_GIT_PREFIX=
@@ -79,6 +79,7 @@ alias zshconfig="vi ~/.zshrc"
 alias szsh="source ~/.zshrc"
 alias vimconfig="vi ~/.vimrc"
 alias env=". env/bin/activate"
+alias cdd="cd ~/Devel"
 
 # NVM Loading
 export NVM_DIR="$HOME/.nvm"

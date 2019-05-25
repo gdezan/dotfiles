@@ -4,42 +4,16 @@ filetype off                  " required
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
-" alternatively, pass a path where Vundle should install plugins
-"call vundle#begin('~/some/path/here')
+
+" Remove trailing whitespace on save
+autocmd BufWritePre * %s/\s\+$//e
 
 " let Vundle manage Vundle, required
 Plugin 'gmarik/Vundle.vim'
 
-" The following are examples of different formats supported.
-" Keep Plugin commands between vundle#begin/end.
-" plugin on GitHub repo
-"Plugin 'tpope/vim-fugitive'
-" plugin from http://vim-scripts.org/vim/scripts.html
-"Plugin 'L9'
-" Git plugin not hosted on GitHub
-"Plugin 'git://git.wincent.com/command-t.git'
-" git repos on your local machine (i.e. when working on your own plugin)
-"Plugin 'file:///home/gmarik/path/to/plugin'
-" The sparkup vim script is in a subdirectory of this repo called vim.
-" Pass the path to set the runtimepath properly.
-"Plugin 'rstacruz/sparkup', {'rtp': 'vim/'}
-" Avoid a name conflict with L9
-"Plugin 'user/L9', {'name': 'newL9'}
-
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
-" To ignore plugin indent changes, instead use:
-"filetype plugin on
-"
-" Brief help
-" :PluginList       - lists configured plugins
-" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
-" :PluginSearch foo - searches for foo; append `!` to refresh local cache
-" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
-"
-" see :h vundle for more details or wiki for FAQ
-" Put your non-Plugin stuff after this line
 
 " Flake8 plugin
 Plugin 'andviro/flake8-vim'
@@ -51,14 +25,17 @@ Plugin 'majutsushi/tagbar'
 Plugin 'airblade/vim-gitgutter'
 " Nerdcommmenter
 Plugin 'scrooloose/nerdcommenter'
-" Super tab
-Plugin 'ervandew/supertab'
 " CTRLP
 Plugin 'kien/ctrlp.vim'
-" FZF
-"Plugin 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-"Plugin 'junegunn/fzf.vim'
-"map <C-p> :Files<CR>
+
+" VimTex
+Plugin 'lervag/vimtex'
+let g:tex_flavor='latex'
+let g:vimtex_view_method='zathura'
+let g:vimtex_quickfix_mode=0
+set conceallevel=1
+let g:tex_conceal='abdmg'
+
 " Python pep8 indent
 Plugin 'hynek/vim-python-pep8-indent'
 " Easy grep
@@ -82,11 +59,19 @@ Plugin 'scrooloose/nerdtree'
 map <C-o> :NERDTreeToggle<CR>
 let NERDTreeMapOpenInTab='<ENTER>'
 
+" UltiSnips
+" Track the engine.
+Plugin 'SirVer/ultisnips'
+" Snippets are separated from the engine. Add this if you want them:
+Plugin 'honza/vim-snippets'
+" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+" If you want :UltiSnipsEdit to split your window.
+let g:UltiSnipsEditSplit="vertical"
+
 " Vim colors
-Plugin 'altercation/vim-colors-solarized'
-Plugin 'crater2150/vim-theme-chroma'
-Plugin 'sentientmachine/Pretty-Vim-Python'
-Plugin 'ayu-theme/ayu-vim'
 " mojave
 Plugin 'marcopaganini/mojave-vim-theme'
 " mrkn256
@@ -97,10 +82,12 @@ Plugin 'dracula/vim'
 Plugin 'kristijanhusak/vim-hybrid-material'
 " Material
 Plugin 'kaicataldo/material.vim'
+" Nord
+Plugin 'arcticicestudio/nord-vim'
 
 "Previous config
 set termguicolors
-colorscheme material
+colorscheme nord
 let g:material_theme_style = 'dark'
 let g:hybrid_transparent_background = 1
 set ts=2
@@ -113,7 +100,7 @@ set ruler
 set tildeop
 set expandtab
 set softtabstop=2
-set visualbell
+"set visualbell
 set shell=/bin/bash
 set showcmd
 set background=dark
@@ -151,7 +138,6 @@ au BufEnter *.html* set tabstop=2
 set guifont=Monospace\ 7
 "set guioptions=agirLt
 
-set list listchars=tab:\|_,trail:$
 highlight SpecialKey ctermfg=Red ctermbg=Yellow guibg=Yellow
 au BufEnter *.diff highlight SpecialKey ctermfg=red ctermbg=red guibg=black
 
@@ -190,7 +176,7 @@ set number
 set laststatus=2
 
 let g:lightline = {
-      \ 'colorscheme': 'powerline',
+      \ 'colorscheme': 'nord',
       \ }
 
 " Tagbar plugin configuration
