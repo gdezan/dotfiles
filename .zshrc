@@ -29,6 +29,7 @@ plugins=(
 export PATH=/usr/local/lib/node_modules:$PATH
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=$HOME/.local/bin:$PATH
+export PATH=$HOME/Devel/flutter/bin:$PATH
 export VISUAL="vim"
 
 # Tell less not to paginate if less than a page
@@ -43,7 +44,7 @@ alias cdsp="cd ~/Devel/stoq/stoq-link-premium"
 alias cdsa="cd ~/Devel/stoq/stoq-link-admin"
 alias cdspp="cd ~/Devel/stoq/stoq-plugin-passbook"
 alias cdspl="cd ~/Devel/stoq/stoq-plugin-link"
-alias stoq3="source ~/.stoq3/stoq/bin/activate && source ~/Devel/stoq/stoq/utils/env.sh"
+alias stoq3="source ~/.stoq3/stoq3/bin/activate && source ~/Devel/stoq/stoq/utils/env.sh"
 alias stoqconf="vim ~/.stoq/stoq.conf"
 alias venv2="source ~/.venv2/bin/activate"
 
@@ -83,6 +84,6 @@ alias env=". env/bin/activate"
 alias cdd="cd ~/Devel"
 
 # NVM Loading
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+#[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
