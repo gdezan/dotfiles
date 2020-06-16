@@ -27,24 +27,25 @@ plugins=(
 )
 
 export PATH=/usr/local/lib/node_modules:$PATH
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/Dev/bin:/usr/local/bin:$PATH
 export PATH=$HOME/.local/bin:$PATH
-export PATH=$HOME/Devel/flutter/bin:$PATH
+export PATH=$HOME/Dev/flutter/bin:$PATH
 export VISUAL="vim"
 
 # Tell less not to paginate if less than a page
 export LESS="-F -X $LESS"
 
 # Stoq aliases
-alias cds="cd ~/Devel/stoq"
-alias cdsm="cd ~/Devel/stoq/stoq-mobile-pos"
-alias cdss="cd ~/Devel/stoq/stoq-server"
-alias cdsl="cd ~/Devel/stoq/stoq-web/stoq-link"
-alias cdsp="cd ~/Devel/stoq/stoq-link-premium"
-alias cdsa="cd ~/Devel/stoq/stoq-link-admin"
-alias cdspp="cd ~/Devel/stoq/stoq-plugin-passbook"
-alias cdspl="cd ~/Devel/stoq/stoq-plugin-link"
-alias stoq3="source ~/.stoq3/stoq3/bin/activate && source ~/Devel/stoq/stoq/utils/env.sh"
+alias cds="cd ~/Dev/stoq"
+alias cdsm="cd ~/Dev/stoq/stoq-mobile-pos"
+alias cdss="cd ~/Dev/stoq/stoq-server"
+alias cdsl="cd ~/Dev/stoq/stoq-web/stoq-link"
+alias cdsp="cd ~/Dev/stoq/stoq-link-premium"
+alias cdsa="cd ~/Dev/stoq/stoq-link-admin"
+alias cdspp="cd ~/Dev/stoq/stoq-plugin-passbook"
+alias cdspl="cd ~/Dev/stoq/stoq-plugin-link"
+alias cdcp="cd ~/Dev/stoq/contactless-payment"
+alias stoq3="source ~/.stoq3/stoq3/bin/activate && source ~/Dev/stoq/stoq/utils/env.sh"
 alias stoqconf="vim ~/.stoq/stoq.conf"
 alias venv2="source ~/.venv2/bin/activate"
 
@@ -81,9 +82,10 @@ alias zshconfig="vi ~/.zshrc"
 alias szsh="source ~/.zshrc"
 alias vimconfig="vi ~/.vimrc"
 alias env=". env/bin/activate"
-alias cdd="cd ~/Devel"
+alias cdd="cd ~/Dev"
+alias loadnvm='[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"'
 
 # NVM Loading
-#export NVM_DIR="$HOME/.nvm"
-#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-#[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"

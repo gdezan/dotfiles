@@ -11,12 +11,13 @@
   last = log -1 HEAD
   d = diff
   fr = !git fetch && git rebase
+  mu = !git checkout master && git fr
   so = branch --set-upstream-to=origin/master
-  sg = branch --set-upstream-to=gitlab/master
   l = log --all --graph --abbrev-commit --decorate
-  ol = log --all --graph --abbrev-commit --decorate --oneline
+  ol = log --all --abbrev-commit --decorate --oneline
   u = add -u
   ph = push origin HEAD
+  phm = push origin HEAD -o merge_request.create
 [core]
   editor = vim
   pager = less -R
