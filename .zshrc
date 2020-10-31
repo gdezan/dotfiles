@@ -77,6 +77,7 @@ source $ZSH/oh-my-zsh.sh
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # Extra aliases
+alias ls="lsd"
 alias vi="vim"
 alias zshconfig="vi ~/.zshrc"
 alias szsh="source ~/.zshrc"
@@ -85,7 +86,13 @@ alias env=". env/bin/activate"
 alias cdd="cd ~/Dev"
 alias loadnvm='[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"'
 
+BROWSER=chromium
+
 # NVM Loading
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# JDK setup
+export JAVA_HOME="/home/gdezan/Extra/jdk-14.0.2"
+export PATH=$JAVA_HOME/bin:$PATH

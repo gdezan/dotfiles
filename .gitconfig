@@ -2,7 +2,7 @@
   name = Gabriel Dezan
   email = dezangabriel@gmail.com
 [color]
-  ui = auto
+	ui = true
 [alias]
   s = status
   b = branch -vv
@@ -20,4 +20,15 @@
   phm = push origin HEAD -o merge_request.create
 [core]
   editor = vim
-  pager = less -R
+	pager = diff-so-fancy | less --tabs=2 -RFX
+[diff-so-fancy]
+	stripLeadingSymbols = false
+[color "diff-highlight"]
+	oldNormal = red bold
+	oldHighlight = red bold 52
+	newNormal = green bold
+	newHighlight = green bold 22
+[color "diff"]
+	old = red bold
+	new = green bold
+	whitespace = red reverse
