@@ -12,6 +12,8 @@
   d = diff
   fr = !git fetch && git rebase
   mu = !git checkout master && git fr
+  wip = !git add . && git commit -m "wip"
+  cwip = !git reset --soft HEAD^ && git reset .
   so = branch --set-upstream-to=origin/master
   l = log --all --graph --abbrev-commit --decorate
   ol = log --all --abbrev-commit --decorate --oneline

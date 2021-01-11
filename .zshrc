@@ -44,7 +44,7 @@ alias cdsp="cd ~/Dev/stoq/stoq-link-premium"
 alias cdsa="cd ~/Dev/stoq/stoq-link-admin"
 alias cdspp="cd ~/Dev/stoq/stoq-plugin-passbook"
 alias cdspl="cd ~/Dev/stoq/stoq-plugin-link"
-alias cdcp="cd ~/Dev/stoq/contactless-payment"
+alias cdz="cd ~/Dev/stoq/zappay"
 alias stoq3="source ~/.stoq3/stoq3/bin/activate && source ~/Dev/stoq/stoq/utils/env.sh"
 alias stoqconf="vim ~/.stoq/stoq.conf"
 alias venv2="source ~/.venv2/bin/activate"
@@ -96,3 +96,9 @@ export NVM_DIR="$HOME/.nvm"
 # JDK setup
 export JAVA_HOME="/home/gdezan/Extra/jdk-14.0.2"
 export PATH=$JAVA_HOME/bin:$PATH
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/gdezan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/gdezan/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/gdezan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/gdezan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
