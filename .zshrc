@@ -1,6 +1,7 @@
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
 
+BROWSER=none
 ZSH_THEME="spaceship"
 #ZSH_THEME="powerline9k"
 
@@ -45,14 +46,16 @@ alias cdsa="cd ~/Dev/stoq/stoq-link-admin"
 alias cdspp="cd ~/Dev/stoq/stoq-plugin-passbook"
 alias cdspl="cd ~/Dev/stoq/stoq-plugin-link"
 alias cdz="cd ~/Dev/stoq/zappay"
+alias cdzu="cd ~/Dev/stoq/zappay-utils"
+alias cdpdv="cd ~/Dev/stoq/stoq-pdv"
 alias stoq3="source ~/.stoq3/stoq3/bin/activate && source ~/Dev/stoq/stoq/utils/env.sh"
 alias stoqconf="vim ~/.stoq/stoq.conf"
 alias venv2="source ~/.venv2/bin/activate"
 
 # 'Fuck' alias
- eval $(thefuck --alias)
+ #eval $(thefuck --alias)
  # You can use whatever you want as an alias, like for Mondays:
- eval $(thefuck --alias FUCK)
+ #eval $(thefuck --alias FUCK)
 
 #source ~/.fonts/*.sh
 
@@ -61,6 +64,7 @@ alias venv2="source ~/.venv2/bin/activate"
 #SPACESHIP_DIR_COLOR=208
 SPACESHIP_PACKAGE_SHOW=false
 SPACESHIP_BATTERY_SHOW=false
+SPACESHIP_DOCKER_SHOW=false
 SPACESHIP_GIT_PREFIX=
 SPACESHIP_NODE_PREFIX=
 SPACESHIP_DIR_TRUNC_REPO=false
@@ -79,6 +83,7 @@ source $ZSH/oh-my-zsh.sh
 # Extra aliases
 alias ls="lsd"
 alias vi="vim"
+alias gti="git"
 alias zshconfig="vi ~/.zshrc"
 alias szsh="source ~/.zshrc"
 alias vimconfig="vi ~/.vimrc"
@@ -86,7 +91,6 @@ alias env=". env/bin/activate"
 alias cdd="cd ~/Dev"
 alias loadnvm='[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"'
 
-BROWSER=chromium
 
 # NVM Loading
 export NVM_DIR="$HOME/.nvm"
@@ -102,3 +106,14 @@ if [ -f '/home/gdezan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/gdezan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/gdezan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+ export FIRESTORE_EMULATOR_HOST="localhost:8080"
+ export FIRESTORE_STORAGE_EMULATOR_HOST="localhost:9199"
+ export FIREBASE_AUTH_EMULATOR_HOST="localhost:9099"
+export NETKIT_HOME=/home/gdezan/Extra/netkit
+export MANPATH=:$NETKIT_HOME/man
+export PATH=:$NETKIT_HOME/bin:$PATH
