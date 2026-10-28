@@ -16,7 +16,6 @@ if set -q WSL_DISTRO_NAME; or string match -qi '*microsoft*' (uname -r)
 end
 
 if test "$is_wsl" = 1
-    set -gx BROWSER wslview
     set -gx ANDROID_ADB_SERVER_ADDRESS 172.19.128.1
     set -gx ANDROID_ADB_SERVER_PORT 5037
     set -gx ADB_SERVER_SOCKET "tcp:$ANDROID_ADB_SERVER_ADDRESS:$ANDROID_ADB_SERVER_PORT"
@@ -55,14 +54,7 @@ if status is-interactive
     end
     alias vi vim
     alias gti git
-    alias g git
-    alias gst 'git status'
-    alias ga 'git add'
-    alias gc 'git commit'
-    alias gp 'git push'
-    alias gl 'git pull'
     alias cdd 'cd ~/Dev'
-    alias vimconfig 'vim ~/.vimrc'
 
     if command -q fzf
         fzf --fish | source
