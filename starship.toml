@@ -1,9 +1,112 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+format = """
+($username[ ](bright-black))\
+($hostname[ ](bright-black))\
+($localip[ ](bright-black))\
+($shlvl[ ](bright-black))\
+($singularity[ ](bright-black))\
+($kubernetes[ ](bright-black))\
+($nats[ ](bright-black))\
+$directory\
+([ ](bright-black)$vcsh)\
+([ ](bright-black)$fossil_branch)\
+([ ](bright-black)$fossil_metrics)\
+([ ](bright-black)$git_branch$git_commit$git_state$git_metrics$git_status)\
+([ ](bright-black)$hg_branch)\
+([ ](bright-black)$hg_state)\
+([ ](bright-black)$pijul_channel)\
+([ ](bright-black)$docker_context)\
+([ ](bright-black)$package)\
+([ ](bright-black)$bun)\
+([ ](bright-black)$c)\
+([ ](bright-black)$cmake)\
+([ ](bright-black)$cobol)\
+([ ](bright-black)$cpp)\
+([ ](bright-black)$daml)\
+([ ](bright-black)$dart)\
+([ ](bright-black)$deno)\
+([ ](bright-black)$dotnet)\
+([ ](bright-black)$elixir)\
+([ ](bright-black)$elm)\
+([ ](bright-black)$erlang)\
+([ ](bright-black)$fennel)\
+([ ](bright-black)$fortran)\
+([ ](bright-black)$gleam)\
+([ ](bright-black)$golang)\
+([ ](bright-black)$gradle)\
+([ ](bright-black)$haskell)\
+([ ](bright-black)$haxe)\
+([ ](bright-black)$helm)\
+([ ](bright-black)$java)\
+([ ](bright-black)$julia)\
+([ ](bright-black)$kotlin)\
+([ ](bright-black)$lua)\
+([ ](bright-black)$maven)\
+([ ](bright-black)$mojo)\
+([ ](bright-black)$nim)\
+([ ](bright-black)$nodejs)\
+([ ](bright-black)$ocaml)\
+([ ](bright-black)$odin)\
+([ ](bright-black)$opa)\
+([ ](bright-black)$perl)\
+([ ](bright-black)$php)\
+([ ](bright-black)$pulumi)\
+([ ](bright-black)$purescript)\
+([ ](bright-black)$python)\
+([ ](bright-black)$quarto)\
+([ ](bright-black)$raku)\
+([ ](bright-black)$rlang)\
+([ ](bright-black)$red)\
+([ ](bright-black)$ruby)\
+([ ](bright-black)$rust)\
+([ ](bright-black)$scala)\
+([ ](bright-black)$solidity)\
+([ ](bright-black)$swift)\
+([ ](bright-black)$terraform)\
+([ ](bright-black)$typst)\
+([ ](bright-black)$vlang)\
+([ ](bright-black)$vagrant)\
+([ ](bright-black)$xmake)\
+([ ](bright-black)$zig)\
+([ ](bright-black)$buf)\
+([ ](bright-black)$guix_shell)\
+([ ](bright-black)$nix_shell)\
+([ ](bright-black)$conda)\
+([ ](bright-black)$pixi)\
+([ ](bright-black)$meson)\
+([ ](bright-black)$spack)\
+([ ](bright-black)$memory_usage)\
+([ ](bright-black)$aws)\
+([ ](bright-black)$gcloud)\
+([ ](bright-black)$openstack)\
+([ ](bright-black)$azure)\
+([ ](bright-black)$direnv)\
+([ ](bright-black)$env_var)\
+([ ](bright-black)$mise)\
+([ ](bright-black)$crystal)\
+([ ](bright-black)$custom)\
+([ ](bright-black)$sudo)\
+([ ](bright-black)$cmd_duration)\
+$all\
+$line_break\
+($jobs[ ](bright-black))\
+($battery[ ](bright-black))\
+($time[ ](bright-black))\
+($status[ ](bright-black))\
+($container[ ](bright-black))\
+($netns[ ](bright-black))\
+($os[ ](bright-black))\
+($shell[ ](bright-black))\
+$character\
+"""
+
 [aws]
+format = '[$symbol($profile )(\($region\) )(\[$duration\] )]($style)'
 symbol = " "
 
 [azure]
+format = '[$symbol($subscription)]($style) '
 symbol = " "
 
 [battery]
@@ -14,36 +117,52 @@ unknown_symbol = "󰂑 "
 empty_symbol = "󰂎 "
 
 [buf]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [bun]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [c]
+format = '[$symbol($version(-$name) )]($style)'
 symbol = " "
 
 [cpp]
+format = '[$symbol($version(-$name) )]($style)'
 symbol = " "
 
 [cmake]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
+[cmd_duration]
+format = '[󰔟 $duration]($style) '
+
 [cobol]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [conda]
+format = '[$symbol$environment]($style) '
 symbol = " "
 
 [container]
 symbol = " "
 
 [crystal]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
+[daml]
+format = '[$symbol($version )]($style)'
+
 [dart]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [deno]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [direnv]
@@ -53,93 +172,125 @@ symbol = " "
 read_only = " 󰌾"
 
 [docker_context]
+format = '[$symbol$context]($style) '
 symbol = " "
 
 [dotnet]
+format = '[$symbol($version )(🎯 $tfm )]($style)'
 symbol = " "
 
 [elixir]
+format = '[$symbol($version \(OTP $otp_version\) )]($style)'
 symbol = " "
 
 [elm]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [erlang]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [fennel]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [fortran]
+format = '[$symbol($version(-$name) )]($style)'
 symbol = " "
 
 [fossil_branch]
+format = '[$symbol$branch]($style) '
 symbol = " "
 
 [gcloud]
 symbol = "󱇶 "
+format = '[$symbol$project]($style) '
 
 [gleam]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [git_branch]
+format = '[$symbol$branch(:$remote_branch)]($style) '
 symbol = " "
 
 [git_commit]
 tag_symbol = '  '
 
 [golang]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [gradle]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [guix_shell]
+format = '[$symbol]($style) '
 symbol = " "
 
 [haskell]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [haxe]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [helm]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [hg_branch]
+format = '[$symbol$branch(:$topic)]($style) '
 symbol = " "
 
 [hostname]
+format = '[$ssh_symbol$hostname]($style) '
 ssh_symbol = " "
 
 [java]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [jj_bookmark]
+format = '[$symbol$bookmark(@$remote)$diverged( \(+$overflow_count others\))]($style) '
 symbol = " "
 
 [julia]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [kotlin]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [kubernetes]
+format = '[$symbol$context( \($namespace\))]($style) '
 symbol = "󱃾 "
 
 [lua]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [maven]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [memory_usage]
+format = '$symbol[$ram( | $swap)]($style) '
 symbol = "󰍛 "
 
 [meson]
+format = '[$symbol$project]($style) '
 symbol = "󰔷 "
 
+[mise]
+format = '[$symbol$health]($style) '
+
 [mojo]
+format = '[$symbol($version )]($style)'
 symbol = "󰈸 "
 
 [nats]
@@ -149,24 +300,31 @@ symbol = " "
 symbol = "󰛳 "
 
 [nim]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [nix_shell]
+format = '[$symbol$state( \($name\))]($style) '
 symbol = " "
 
 [nodejs]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [ocaml]
+format = '[$symbol($version )(\($switch_indicator$switch_name\) )]($style)'
 symbol = " "
 
 [odin]
+format = '[$symbol($version )]($style)'
 symbol = "󰟢 "
 
 [opa]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [openstack]
+format = '[$symbol$cloud(\($project\))]($style) '
 symbol = " "
 
 [os.symbols]
@@ -233,45 +391,62 @@ Windows = "󰍲 "
 Zorin = " "
 
 [package]
+format = '[$symbol$version]($style) '
 symbol = "󰏗 "
 
 [perl]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [php]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [pijul_channel]
+format = '[$symbol$channel]($style) '
 symbol = " "
 
 [pixi]
+format = '[$symbol($version )(\($environment\) )]($style)'
 symbol = "󰏗 "
 
 [pulumi]
+format = '[$symbol($username@)$stack]($style) '
 symbol = " "
 
 [purescript]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [python]
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
 symbol = " "
 
+[quarto]
+format = '[$symbol($version )]($style)'
+
 [raku]
+format = '[$symbol($version-$vm_version )]($style)'
 symbol = "󱖊 "
 
 [red]
+format = '[$symbol($version )]($style)'
 symbol = "󱍼 "
 
 [rlang]
+format = '[$symbol($version )]($style)'
 symbol = "󰟔 "
 
 [ruby]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [rust]
+format = '[$symbol($version )]($style)'
 symbol = "󱘗 "
 
 [scala]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [shlvl]
@@ -281,34 +456,50 @@ symbol = "󰹍 "
 symbol = " "
 
 [solidity]
+format = '[$symbol($version)]($style) '
 symbol = " "
 
 [spack]
+format = '[$symbol$environment]($style) '
 symbol = " "
 
 [status]
 symbol = " "
 
 [sudo]
+format = '[$symbol]($style)'
 symbol = " "
 
 [swift]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [terraform]
+format = '[$symbol$workspace]($style) '
 symbol = " "
 
 [vlang]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
+[time]
+format = '[$time]($style) '
+
 [typst]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
+[username]
+format = '[$user]($style) '
+
 [vagrant]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [xmake]
+format = '[$symbol($version )]($style)'
 symbol = " "
 
 [zig]
+format = '[$symbol($version )]($style)'
 symbol = " "
