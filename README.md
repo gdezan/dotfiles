@@ -2,16 +2,18 @@
 
 ## Shell configuration
 
-`fish/config.fish`, `.zshrc`, `zsh/zshenv` and
-`systemd/shell-ssh-agent.service` are the source files for the Fish setup and
-Zsh fallback. Deploy them with:
+`fish/config.fish`, `.zshrc`, `zsh/zshenv`, `starship.toml` and
+`systemd/shell-ssh-agent.service` are the source files for the Fish setup,
+Starship prompt and Zsh fallback. Deploy them with:
 
 ```sh
 make shell-deploy
 ```
 
 Deployment copies files into the home directory and saves any existing files
-under `~/.local/state/dotfiles-backups/`. It does not change the login shell or
+under `~/.local/state/dotfiles-backups/`. Starship is deployed to
+`~/.config/starship.toml`. If `STARSHIP_CONFIG` points elsewhere, deployment
+stops before changing files. Deployment does not change the login shell or
 start the SSH-agent service. Edit the repository copies and redeploy after a
 change. The old `make update` and `make push` targets are unrelated legacy
 workflows and can overwrite home files; do not use them for the shell setup.
