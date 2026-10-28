@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenSSH agent for interactive and remote shells
+Documentation=man:ssh-agent(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssh-agent -D -a %t/shell-ssh-agent.sock
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
