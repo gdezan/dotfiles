@@ -7,6 +7,7 @@ shell-test:
 	bash tests/deploy-shell-test.sh
 	python3 tests/zsh-history-import-test.py
 	bash tests/wsl-startup-test.sh
+	bash tests/macos-shell-test.sh
 	fish -n fish/config.fish
 	zsh -n .zshrc
 	zsh -n zsh/zshenv

@@ -2,7 +2,11 @@
 set -euo pipefail
 repo=$(cd "$(dirname "$0")/.." && pwd)
 backup_root="$HOME/.local/state/dotfiles-backups"
-mappings=('fish/config.fish:.config/fish/config.fish' 'systemd/shell-ssh-agent.service:.config/systemd/user/shell-ssh-agent.service' '.zshrc:.zshrc' 'zsh/zshenv:.zshenv' 'starship.toml:.config/starship.toml')
+os=$(uname -s)
+mappings=('fish/config.fish:.config/fish/config.fish' 'starship.toml:.config/starship.toml')
+if [[ "$os" != Darwin ]]; then
+    mappings+=('systemd/shell-ssh-agent.service:.config/systemd/user/shell-ssh-agent.service' '.zshrc:.zshrc' 'zsh/zshenv:.zshenv')
+fi
 if [[ -n "${STARSHIP_CONFIG:-}" && "$STARSHIP_CONFIG" != "$HOME/.config/starship.toml" ]]; then
     printf 'STARSHIP_CONFIG points elsewhere; refusing to deploy to the default path\n' >&2
     exit 1
@@ -32,7 +36,11 @@ for mapping in "${mappings[@]}"; do
     mkdir -p "$(dirname "$target_path")"
     temporary=$(mktemp "$(dirname "$target_path")/.shell-deploy-XXXXXXXX")
     install -m 644 -- "$source_path" "$temporary"
-    mv -fT -- "$temporary" "$target_path"
+    if [[ "$os" == Darwin ]]; then
+        /bin/mv -fh -- "$temporary" "$target_path"
+    else
+        mv -fT -- "$temporary" "$target_path"
+    fi
 done
 printf 'Backed up existing files to %s\n' "$backup"
 printf 'Deployed shell and Starship configuration. No service or login shell was changed.\n'

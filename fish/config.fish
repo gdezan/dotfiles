@@ -1,3 +1,9 @@
+set -l is_macos 0
+if test (uname -s) = Darwin
+    set is_macos 1
+    fish_add_path --path /opt/homebrew/bin /opt/homebrew/sbin
+end
+
 set -gx EDITOR vim
 set -gx VISUAL vim
 set -gx LESS "-F -X $LESS"
@@ -5,6 +11,9 @@ set -gx LESS "-F -X $LESS"
 fish_add_path --path ~/.local/bin ~/.cargo/bin ~/.deno/bin ~/.bun/bin ~/.grok/bin ~/.opencode/bin ~/.fzf/bin
 set -gx PNPM_HOME "$HOME/.local/share/pnpm"
 fish_add_path --path "$PNPM_HOME"
+if test "$is_macos" = 1
+    fish_add_path --path /opt/homebrew/opt/fzf/bin
+end
 
 if not set -q SSH_AUTH_SOCK; and set -q XDG_RUNTIME_DIR; and test -S "$XDG_RUNTIME_DIR/shell-ssh-agent.sock"
     set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/shell-ssh-agent.sock"
@@ -33,7 +42,7 @@ end
 if command -q fnm
     if status is-interactive
         fnm env --use-on-cd --version-file-strategy recursive --resolve-engines=false --shell fish | source
-    else if test "$is_wsl" = 1
+    else if test "$is_wsl" = 1; or test "$is_macos" = 1
         fnm env --shell fish | source
     end
 end
@@ -62,4 +71,8 @@ if status is-interactive
     if command -q starship
         starship init fish | source
     end
+end
+
+if test "$is_macos" = 1; and test -f "$HOME/.config/fish/local-macos.fish"
+    source "$HOME/.config/fish/local-macos.fish"
 end

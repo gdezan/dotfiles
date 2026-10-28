@@ -13,16 +13,24 @@ printf 'old zsh environment\n' > "$HOME/.zshenv"
 printf 'old Starship config\n' > "$HOME/.config/starship.toml"
 "$repo/scripts/deploy-shell-config"
 cmp "$repo/fish/config.fish" "$HOME/.config/fish/config.fish"
-cmp "$repo/systemd/shell-ssh-agent.service" "$HOME/.config/systemd/user/shell-ssh-agent.service"
-cmp "$repo/.zshrc" "$HOME/.zshrc"
-cmp "$repo/zsh/zshenv" "$HOME/.zshenv"
+if [[ $(uname -s) == Darwin ]]; then
+    grep -qx 'old agent unit' "$HOME/.config/systemd/user/shell-ssh-agent.service"
+    grep -qx 'old zsh config' "$HOME/.zshrc"
+    grep -qx 'old zsh environment' "$HOME/.zshenv"
+else
+    cmp "$repo/systemd/shell-ssh-agent.service" "$HOME/.config/systemd/user/shell-ssh-agent.service"
+    cmp "$repo/.zshrc" "$HOME/.zshrc"
+    cmp "$repo/zsh/zshenv" "$HOME/.zshenv"
+fi
 cmp "$repo/starship.toml" "$HOME/.config/starship.toml"
 backup=$(find "$HOME/.local/state/dotfiles-backups" -mindepth 1 -maxdepth 1 -type d -print -quit)
 test -n "$backup"
 grep -qx 'old fish config' "$backup/.config/fish/config.fish"
-grep -qx 'old agent unit' "$backup/.config/systemd/user/shell-ssh-agent.service"
-grep -qx 'old zsh config' "$backup/.zshrc"
-grep -qx 'old zsh environment' "$backup/.zshenv"
+if [[ $(uname -s) != Darwin ]]; then
+    grep -qx 'old agent unit' "$backup/.config/systemd/user/shell-ssh-agent.service"
+    grep -qx 'old zsh config' "$backup/.zshrc"
+    grep -qx 'old zsh environment' "$backup/.zshenv"
+fi
 grep -qx 'old Starship config' "$backup/.config/starship.toml"
 "$repo/scripts/deploy-shell-config"
 cmp "$repo/fish/config.fish" "$HOME/.config/fish/config.fish"
@@ -63,4 +71,20 @@ ln -s "$tmp/external" "$HOME/.config/fish/config.fish"
 grep -qx 'keep external file' "$tmp/external"
 test ! -L "$HOME/.config/fish/config.fish"
 cmp "$repo/fish/config.fish" "$HOME/.config/fish/config.fish"
+
+rm "$HOME/.config/fish/config.fish"
+mkdir "$tmp/external-directory"
+ln -s "$tmp/external-directory" "$HOME/.config/fish/config.fish"
+"$repo/scripts/deploy-shell-config"
+test ! -L "$HOME/.config/fish/config.fish"
+cmp "$repo/fish/config.fish" "$HOME/.config/fish/config.fish"
+test -z "$(ls -A "$tmp/external-directory")"
+
+if [[ $(uname -s) == Darwin ]]; then
+    mkdir "$tmp/gnubin"
+    printf '#!/bin/sh\nexit 1\n' > "$tmp/gnubin/mv"
+    chmod +x "$tmp/gnubin/mv"
+    PATH="$tmp/gnubin:$PATH" "$repo/scripts/deploy-shell-config"
+    cmp "$repo/fish/config.fish" "$HOME/.config/fish/config.fish"
+fi
 printf 'deploy-shell-test passed\n'
