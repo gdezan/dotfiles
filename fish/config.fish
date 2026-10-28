@@ -69,6 +69,15 @@ if status is-interactive
         fzf --fish | source
     end
     if command -q starship
+        function __starship_update_gcloud --on-variable PWD
+            switch $PWD
+                case "$HOME/Dev/skipify" "$HOME/Dev/skipify/*"
+                    set -gx STARSHIP_SHOW_GCLOUD 1
+                case '*'
+                    set -e STARSHIP_SHOW_GCLOUD
+            end
+        end
+        __starship_update_gcloud
         starship init fish | source
     end
 end

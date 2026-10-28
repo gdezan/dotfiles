@@ -12,11 +12,12 @@ $directory\
 ([ ](bright-black)$vcsh)\
 ([ ](bright-black)$fossil_branch)\
 ([ ](bright-black)$fossil_metrics)\
-([ ](bright-black)$git_branch$git_commit$git_state$git_metrics$git_status)\
+([ ](bright-black)$git_branch$git_state$git_metrics$git_status)\
 ([ ](bright-black)$hg_branch)\
 ([ ](bright-black)$hg_state)\
 ([ ](bright-black)$pijul_channel)\
 ([ ](bright-black)$docker_context)\
+([ ](bright-black)$git_commit)\
 ([ ](bright-black)$package)\
 ([ ](bright-black)$bun)\
 ([ ](bright-black)$c)\
@@ -206,6 +207,7 @@ symbol = " "
 [gcloud]
 symbol = "󱇶 "
 format = '[$symbol$project]($style) '
+detect_env_vars = ['STARSHIP_SHOW_GCLOUD']
 
 [gleam]
 format = '[$symbol($version )]($style)'
@@ -216,7 +218,12 @@ format = '[$symbol$branch(:$remote_branch)]($style) '
 symbol = " "
 
 [git_commit]
-tag_symbol = '  '
+only_detached = false
+tag_disabled = false
+tag_max_candidates = 10
+format = '([$tag]($style) )'
+style = '208 bold'
+tag_symbol = '󰏗 '
 
 [golang]
 format = '[$symbol($version )]($style)'
@@ -393,6 +400,7 @@ Zorin = " "
 [package]
 format = '[$symbol$version]($style) '
 symbol = "󰏗 "
+disabled = true
 
 [perl]
 format = '[$symbol($version )]($style)'
