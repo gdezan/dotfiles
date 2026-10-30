@@ -14,7 +14,8 @@ function find(node, id) {
 export default class Tabs extends View {
   init() {
     this.pressed = null;
-    this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
+    this.panels = Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem("panels") ?? "{}"))
+      .map(([space, panel]) => [space, panel === "changes" ? "source" : panel]));
   }
 
   // The side panel is remembered per space: switching shows that space's choice
@@ -77,7 +78,7 @@ export default class Tabs extends View {
       ? Math.max(10, (root.traffic_lights[0] + 64) / settings().zoom - (sidebar?.hidden ? 0 : sidebar?.size?.px ?? 0))
       : 10;
     const panel = find(root, "panel"), body = find(root, "panel-body");
-    const enabled = [...(shared("workspace.panels") ?? ["files", "changes"]), "usage", "sessions"];
+    const enabled = [...new Set([...(shared("workspace.panels") ?? ["files", "changes"]).map(panel => panel === "changes" ? "source" : panel), "source", "usage", "sessions"])];
     this.syncPanel(space, panel, body, enabled);
     const panelButton = (id, label, icon) => {
       const on = panel && !panel.hidden && body?.active === id;
@@ -95,7 +96,7 @@ export default class Tabs extends View {
       .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(3).overflow_x_scrollbar().children(shown.map(item)))
       .child(button("tab-new", "+", () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
-      .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))
+      .when(enabled.includes("source"), el => el.child(panelButton("source", "Source", "mods/source/source.svg")))
       .child(panelButton("usage", "Usage", "mods/provider-usage/usage.svg"))
       .child(panelButton("sessions", "Sessions", "mods/workspace-chrome/clock.svg"))
       .when(window()?.buttons, el => el.child(button("minimize", "−", () => run("window.minimize")))

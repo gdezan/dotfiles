@@ -22,11 +22,14 @@ printf 'unrelated\n' > "$HERDR_APP_HOME/layouts/main.json"
 printf 'state\n' > "$HERDR_APP_HOME/view.json"
 "$repo/scripts/deploy-herdr-config"
 cmp "$repo/herdr-app/layouts/gd.json" "$HERDR_APP_HOME/layouts/gd.json"
-for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc; do
+for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source; do
     cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
     cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
 done
 cmp "$repo/herdr-app/mods/menu-hc/copy.svg" "$HERDR_APP_HOME/mods/menu-hc/copy.svg"
+for file in git.js panel.js dialogs.js ui.js diff.js source.svg; do
+    cmp "$repo/herdr-app/mods/source/$file" "$HERDR_APP_HOME/mods/source/$file"
+done
 test -f "$HERDR_APP_HOME/mods/session-history/node_modules/installed"
 grep -qx unrelated "$HERDR_APP_HOME/layouts/main.json"
 grep -qx state "$HERDR_APP_HOME/view.json"
@@ -46,8 +49,14 @@ printf 'generated\n' > "$incomplete/herdr-app/mods/usage-tabs/jsconfig.json"
 "$incomplete/scripts/deploy-herdr-config"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/gpui-kit.d.ts"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/jsconfig.json"
-rm "$incomplete/herdr-app/mods/provider-usage/main.js"
+rm "$incomplete/herdr-app/mods/source/git.js"
 printf 'keep layout\n' > "$HERDR_APP_HOME/layouts/gd.json"
+if "$incomplete/scripts/deploy-herdr-config" >/dev/null 2>&1; then
+    echo 'deployment without Source backend unexpectedly succeeded' >&2; exit 1
+fi
+grep -qx 'keep layout' "$HERDR_APP_HOME/layouts/gd.json"
+cp "$repo/herdr-app/mods/source/git.js" "$incomplete/herdr-app/mods/source/git.js"
+rm "$incomplete/herdr-app/mods/provider-usage/main.js"
 if "$incomplete/scripts/deploy-herdr-config" >/dev/null 2>&1; then
     echo 'incomplete deployment unexpectedly succeeded' >&2; exit 1
 fi

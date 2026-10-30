@@ -9,7 +9,7 @@ herdr-deploy:
 herdr-test:
 	bash tests/deploy-herdr-test.sh
 	node herdr-app/mods/agent-session-menu/session-menu.test.mjs
-	node --experimental-vm-modules --test herdr-app/mods/session-history/*.test.mjs
+	node --experimental-vm-modules --test herdr-app/mods/session-history/*.test.mjs herdr-app/mods/source/*.test.mjs
 
 shell-test:
 	bash tests/deploy-shell-test.sh

@@ -4,7 +4,7 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 source_dir="$repo/herdr-app"
 app_home=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
 backup_root="$HOME/.local/state/dotfiles-backups"
-mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc)
+mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source)
 required=(layouts/gd.json)
 for mod in "${mods[@]}"; do
     required+=("mods/$mod/main.js" "mods/$mod/mod.json")
@@ -17,6 +17,9 @@ for file in package.json index.ts types.ts windows.ts cursor.ts openai.ts claude
 done
 for file in package.json package-lock.json read-sessions.mjs session-reader.mjs; do
     required+=("mods/session-history/$file")
+done
+for file in git.js panel.js dialogs.js ui.js diff.js source.svg; do
+    required+=("mods/source/$file")
 done
 for file in "${required[@]}"; do
     if [[ ! -f "$source_dir/$file" ]]; then
@@ -58,4 +61,4 @@ for path in layouts/gd.json "${mods[@]/#/mods/}"; do
     mv "$stage/$path" "$app_home/$path"
 done
 printf 'Backed up existing Herdr files to %s\n' "$backup"
-printf 'Deployed layout gd and six mods to %s. Select gd in Herdr.\n' "$app_home"
+printf 'Deployed layout gd and %s mods to %s. Select gd in Herdr.\n' "${#mods[@]}" "$app_home"

@@ -2,7 +2,7 @@
 
 ## Herdr layout
 
-`herdr-app/` contains the `gd` layout and its six custom mods, based on
+`herdr-app/` contains the `gd` layout and its seven custom mods, based on
 `iss`'s `sessions` layout. Install Herdr, Node.js and npm first, then deploy with Bash and make:
 
 ```sh
@@ -10,7 +10,7 @@ make herdr-deploy
 ```
 
 Deployment installs the Sessions reader's pinned npm dependency, copies `gd.json`
-and replaces only the six named mod directories. The install requires network
+and replaces only the seven named mod directories. The install requires network
 access and finishes before existing targets are replaced. Deployment backs up
 existing targets, including extra files and symlinks, under
 `~/.local/state/dotfiles-backups/herdr-*`. It leaves shipped layouts and mods,
@@ -31,6 +31,29 @@ Node.js 22.19 or later there, then use the panel's install button when prompted.
 The reader uses credentials already configured on that machine; credentials
 are not part of this repository. An existing installed reader is not updated by
 deploying the mod, so reader upgrades need a separate, deliberate update.
+
+The Source panel replaces Changes in `gd`. It remembers repository selections per
+Herdr tab, scans immediate child folders, and lets you add another checkout.
+Selecting a file opens a staged or unstaged diff; commits include staged changes
+only. Fetch contacts all remotes; pull uses fast-forward only and requires a clean
+working tree; push targets only the current branch's upstream. Git hooks and
+credential helpers use the machine's existing configuration. Discard restores the
+index version or deletes an untracked file after confirmation. Refresh rechecks
+selected repositories; external changes also refresh through local folder watches
+and 10-second polling. Before commit, Source checks that the staged snapshot has
+not changed since it was displayed. The discard confirmation rechecks the file.
+Neither check can lock out a concurrent Git or file edit between the recheck and
+the operation, so avoid committing or discarding while an agent is editing.
+
+Source handles whole-file changes only. Resolve conflicts in an editor or
+terminal; dirty submodule contents are not shown in the parent, while checkout
+pointer changes are. Diff previews are limited to 3,000 rows and 4,000 characters
+per line. Discovery is limited to 500 immediate child repositories, and the file
+list to 1,000 entries per group. Large-list bulk actions are disabled. Binary
+files have no text diff. Local Add folder uses the system picker; remote machines
+accept an absolute path. The first view of a tab automatically selects its current
+repository if cwd is inside one; explicitly selected lists stay pinned when cwd
+changes. Prior saved Changes-panel selections are mapped to Source.
 
 The Sessions panel lists local Pi, Claude Code and Cursor conversations across
 projects. It opens a session in a matching local space, or creates a space for

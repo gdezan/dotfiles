@@ -136,10 +136,10 @@
                       }
                     },
                     {
-                      "id": "changes",
+                      "id": "source",
                       "type": "block",
                       "content": {
-                        "mod": "changes"
+                        "mod": "source"
                       }
                     },
                     {
