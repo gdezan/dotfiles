@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo=$(cd "$(dirname "$0")/.." && pwd)
+source_dir="$repo/herdr-app"
+app_home=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
+backup_root="$HOME/.local/state/dotfiles-backups"
+mods=(agents-session agent-session-menu usage-tabs provider-usage)
+required=(layouts/gd.json)
+for mod in "${mods[@]}"; do
+    required+=("mods/$mod/main.js" "mods/$mod/mod.json")
+done
+required+=(mods/agent-session-menu/copy.svg mods/provider-usage/claude.svg
+    mods/provider-usage/deepseek.svg mods/provider-usage/openai.svg
+    mods/provider-usage/refresh.svg mods/provider-usage/usage.svg)
+for file in package.json index.ts types.ts windows.ts cursor.ts openai.ts claude.ts antigravity.ts; do
+    required+=("mods/provider-usage/reader/$file")
+done
+for file in "${required[@]}"; do
+    if [[ ! -f "$source_dir/$file" ]]; then
+        printf 'Missing Herdr configuration: %s\n' "$source_dir/$file" >&2
+        exit 1
+    fi
+done
+for dir in "$app_home/layouts" "$app_home/mods"; do
+    if [[ -L "$dir" || ( -e "$dir" && ! -d "$dir" ) ]]; then
+        printf 'Herdr configuration parent is not a directory or is a symlink: %s\n' "$dir" >&2
+        exit 1
+    fi
+done
+if [[ -d "$app_home/layouts/gd.json" && ! -L "$app_home/layouts/gd.json" ]]; then
+    printf 'Herdr layout target is a directory: %s\n' "$app_home/layouts/gd.json" >&2
+    exit 1
+fi
+umask 077
+mkdir -p "$app_home/layouts" "$app_home/mods" "$backup_root"
+stage=$(mktemp -d "$app_home/.herdr-deploy-XXXXXXXX")
+trap 'rm -rf "$stage"' EXIT
+mkdir -p "$stage/layouts" "$stage/mods"
+cp "$source_dir/layouts/gd.json" "$stage/layouts/gd.json"
+for mod in "${mods[@]}"; do
+    cp -R "$source_dir/mods/$mod" "$stage/mods/$mod"
+    rm -f "$stage/mods/$mod/gpui-kit.d.ts" "$stage/mods/$mod/jsconfig.json"
+done
+backup=$(mktemp -d "$backup_root/herdr-$(date +%Y%m%d-%H%M%S)-XXXXXXXX")
+mkdir -p "$backup/layouts" "$backup/mods"
+for path in layouts/gd.json "${mods[@]/#/mods/}"; do
+    if [[ -e "$app_home/$path" || -L "$app_home/$path" ]]; then
+        cp -a "$app_home/$path" "$backup/$path"
+    fi
+done
+for path in layouts/gd.json "${mods[@]/#/mods/}"; do
+    rm -rf "$app_home/$path"
+    mv "$stage/$path" "$app_home/$path"
+done
+printf 'Backed up existing Herdr files to %s\n' "$backup"
+printf 'Deployed layout gd and four mods to %s. Select gd in Herdr.\n' "$app_home"

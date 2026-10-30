@@ -1,5 +1,39 @@
 # Dotfiles
 
+## Herdr layout
+
+`herdr-app/` contains the `gd` layout and its four custom mods, copied from
+`iss`'s `sessions` layout. Install Herdr first, then deploy with Bash and make:
+
+```sh
+make herdr-deploy
+```
+
+Deployment copies `gd.json` and replaces only the four named mod directories.
+It backs up existing targets, including extra files and symlinks, under
+`~/.local/state/dotfiles-backups/herdr-*`. It leaves shipped layouts and mods,
+settings, keys, and runtime state alone. Set `HERDR_APP_HOME` to deploy to a
+non-default Herdr home. On Windows, run the command from a Bash environment
+such as Git Bash. Select `gd` in Herdr after deployment; deployment does not
+switch layouts or remove the original `sessions` layout.
+
+Edit the repository copies and redeploy to share changes. Edits made directly
+in Herdr's home are not automatically copied back to the repository. The layout
+and its cloned mods were based on Herdr 0.1.8; review compatibility when Herdr
+changes. Saved panel sizes and visibility are machine-local and are not copied.
+The `iss` settings use LythMonoTerm Nerd Font; install it and select it in
+Herdr separately if desired.
+
+The Usage panel runs a bundled reader on the active space's machine. Install
+Node.js 22.19 or later there, then use the panel's install button when prompted.
+The reader uses credentials already configured on that machine; credentials
+are not part of this repository. An existing installed reader is not updated by
+deploying the mod, so reader upgrades need a separate, deliberate update.
+
+Run `make herdr-test` for the deployment and session-menu checks. The bundled
+`rename-latency.test.mjs` is a machine-specific integration probe, not part of
+that target; it requires its configured Pi, hc and SSH setup.
+
 ## Shell configuration
 
 `fish/config.fish`, `.zshrc`, `zsh/zshenv`, `starship.toml` and

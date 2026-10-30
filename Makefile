@@ -1,7 +1,14 @@
-.PHONY: shell-deploy shell-test
+.PHONY: shell-deploy shell-test herdr-deploy herdr-test
 
 shell-deploy:
 	./scripts/deploy-shell-config
+
+herdr-deploy:
+	./scripts/deploy-herdr-config
+
+herdr-test:
+	bash tests/deploy-herdr-test.sh
+	node herdr-app/mods/agent-session-menu/session-menu.test.mjs
 
 shell-test:
 	bash tests/deploy-shell-test.sh
