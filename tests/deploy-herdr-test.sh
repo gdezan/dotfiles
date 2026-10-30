@@ -22,9 +22,11 @@ printf 'unrelated\n' > "$HERDR_APP_HOME/layouts/main.json"
 printf 'state\n' > "$HERDR_APP_HOME/view.json"
 "$repo/scripts/deploy-herdr-config"
 cmp "$repo/herdr-app/layouts/gd.json" "$HERDR_APP_HOME/layouts/gd.json"
-for mod in agents-session agent-session-menu usage-tabs provider-usage session-history; do
+for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc; do
     cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
+    cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
 done
+cmp "$repo/herdr-app/mods/menu-hc/copy.svg" "$HERDR_APP_HOME/mods/menu-hc/copy.svg"
 test -f "$HERDR_APP_HOME/mods/session-history/node_modules/installed"
 grep -qx unrelated "$HERDR_APP_HOME/layouts/main.json"
 grep -qx state "$HERDR_APP_HOME/view.json"

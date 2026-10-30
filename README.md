@@ -2,7 +2,7 @@
 
 ## Herdr layout
 
-`herdr-app/` contains the `gd` layout and its five custom mods, based on
+`herdr-app/` contains the `gd` layout and its six custom mods, based on
 `iss`'s `sessions` layout. Install Herdr, Node.js and npm first, then deploy with Bash and make:
 
 ```sh
@@ -10,7 +10,7 @@ make herdr-deploy
 ```
 
 Deployment installs the Sessions reader's pinned npm dependency, copies `gd.json`
-and replaces only the five named mod directories. The install requires network
+and replaces only the six named mod directories. The install requires network
 access and finishes before existing targets are replaced. Deployment backs up
 existing targets, including extra files and symlinks, under
 `~/.local/state/dotfiles-backups/herdr-*`. It leaves shipped layouts and mods,
