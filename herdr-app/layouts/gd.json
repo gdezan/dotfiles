@@ -147,6 +147,13 @@
                       "content": {
                         "mod": "provider-usage"
                       }
+                    },
+                    {
+                      "id": "sessions",
+                      "type": "block",
+                      "content": {
+                        "mod": "session-history"
+                      }
                     }
                   ],
                   "active": "files"

@@ -4,7 +4,7 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 source_dir="$repo/herdr-app"
 app_home=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
 backup_root="$HOME/.local/state/dotfiles-backups"
-mods=(agents-session agent-session-menu usage-tabs provider-usage)
+mods=(agents-session agent-session-menu usage-tabs provider-usage session-history)
 required=(layouts/gd.json)
 for mod in "${mods[@]}"; do
     required+=("mods/$mod/main.js" "mods/$mod/mod.json")
@@ -14,6 +14,9 @@ required+=(mods/agent-session-menu/copy.svg mods/provider-usage/claude.svg
     mods/provider-usage/refresh.svg mods/provider-usage/usage.svg)
 for file in package.json index.ts types.ts windows.ts cursor.ts openai.ts claude.ts antigravity.ts; do
     required+=("mods/provider-usage/reader/$file")
+done
+for file in package.json package-lock.json read-sessions.mjs session-reader.mjs; do
+    required+=("mods/session-history/$file")
 done
 for file in "${required[@]}"; do
     if [[ ! -f "$source_dir/$file" ]]; then
@@ -41,6 +44,8 @@ for mod in "${mods[@]}"; do
     cp -R "$source_dir/mods/$mod" "$stage/mods/$mod"
     rm -f "$stage/mods/$mod/gpui-kit.d.ts" "$stage/mods/$mod/jsconfig.json"
 done
+rm -rf "$stage/mods/session-history/node_modules"
+(cd "$stage/mods/session-history" && npm ci --omit=optional --legacy-peer-deps --ignore-scripts --no-audit --no-fund)
 backup=$(mktemp -d "$backup_root/herdr-$(date +%Y%m%d-%H%M%S)-XXXXXXXX")
 mkdir -p "$backup/layouts" "$backup/mods"
 for path in layouts/gd.json "${mods[@]/#/mods/}"; do
@@ -49,8 +54,8 @@ for path in layouts/gd.json "${mods[@]/#/mods/}"; do
     fi
 done
 for path in layouts/gd.json "${mods[@]/#/mods/}"; do
-    rm -rf "$app_home/$path"
+    rm -rf "${app_home:?}/${path:?}"
     mv "$stage/$path" "$app_home/$path"
 done
 printf 'Backed up existing Herdr files to %s\n' "$backup"
-printf 'Deployed layout gd and four mods to %s. Select gd in Herdr.\n' "$app_home"
+printf 'Deployed layout gd and five mods to %s. Select gd in Herdr.\n' "$app_home"
