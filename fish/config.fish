@@ -8,6 +8,10 @@ set -gx EDITOR vim
 set -gx VISUAL vim
 set -gx LESS "-F -X $LESS"
 
+if set -q HC_TERMINAL_ID; and not set -q PI_CLIPBOARD_OSC52
+    set -gx PI_CLIPBOARD_OSC52 1
+end
+
 fish_add_path --path ~/.local/bin ~/.cargo/bin ~/.deno/bin ~/.bun/bin ~/.grok/bin ~/.opencode/bin ~/.fzf/bin
 set -gx PNPM_HOME "$HOME/.local/share/pnpm"
 fish_add_path --path "$PNPM_HOME"
