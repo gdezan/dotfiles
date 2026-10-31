@@ -10,7 +10,7 @@ async function loadOpen(spaces, panes) {
   const module = new vm.SourceTextModule(`${source}\nexport { open };`, { context });
   const mocks = {
     'gpui-kit': { View: class {}, div() {}, image() {}, svg() {} },
-    'gpui-base': { h_flex() {}, v_flex() {} },
+    'gpui-base': { h_flex() {}, v_flex() {}, Input() {}, InputState: { new() {} } },
     herdr: { appHome() {}, exec() {}, layout() {}, theme() {}, spaces: () => spaces, panes: () => panes, run: (...args) => calls.push(args) },
   };
   await module.link(specifier => {
