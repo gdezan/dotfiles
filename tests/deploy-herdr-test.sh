@@ -46,10 +46,17 @@ cp "$repo/scripts/deploy-herdr-config" "$incomplete/scripts/"
 cp -R "$repo/herdr-app/." "$incomplete/herdr-app/"
 printf 'generated\n' > "$incomplete/herdr-app/mods/usage-tabs/gpui-kit.d.ts"
 printf 'generated\n' > "$incomplete/herdr-app/mods/usage-tabs/jsconfig.json"
+"$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null
+if "$incomplete/scripts/deploy-herdr-config" --bogus >/dev/null 2>&1; then
+    echo 'unknown argument unexpectedly succeeded' >&2; exit 1
+fi
 "$incomplete/scripts/deploy-herdr-config"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/gpui-kit.d.ts"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/jsconfig.json"
 rm "$incomplete/herdr-app/mods/source/git.js"
+if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
+    echo 'incomplete check unexpectedly succeeded' >&2; exit 1
+fi
 printf 'keep layout\n' > "$HERDR_APP_HOME/layouts/gd.json"
 if "$incomplete/scripts/deploy-herdr-config" >/dev/null 2>&1; then
     echo 'deployment without Source backend unexpectedly succeeded' >&2; exit 1

@@ -1,4 +1,4 @@
-.PHONY: shell-deploy shell-test herdr-deploy herdr-test
+.PHONY: shell-deploy shell-test herdr-deploy herdr-deploy-remote herdr-test
 
 shell-deploy:
 	./scripts/deploy-shell-config
@@ -6,8 +6,12 @@ shell-deploy:
 herdr-deploy:
 	./scripts/deploy-herdr-config
 
+herdr-deploy-remote:
+	./scripts/deploy-herdr-remote "$(HOST)"
+
 herdr-test:
 	bash tests/deploy-herdr-test.sh
+	bash tests/deploy-herdr-remote-test.sh
 	node herdr-app/mods/agent-session-menu/session-menu.test.mjs
 	node --experimental-vm-modules --test herdr-app/mods/session-history/*.test.mjs herdr-app/mods/source/*.test.mjs
 

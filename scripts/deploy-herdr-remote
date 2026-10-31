@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo=$(cd "$(dirname "$0")/.." && pwd)
+host=${1:-${HERDR_REMOTE_HOST:-}}
+remote_bash=${HERDR_REMOTE_BASH:-bash}
+remote_home=${HERDR_REMOTE_APP_HOME:-}
+if [[ -z "$host" ]]; then
+    printf 'Usage: %s HOST\n' "$0" >&2
+    printf 'Set HERDR_REMOTE_BASH when the remote SSH shell is not bash, for example:\n' >&2
+    printf '  HERDR_REMOTE_BASH=%s %s iss\n' "'& \"C:/Program Files/Git/bin/bash.exe\"'" "$0" >&2
+    printf 'Set HERDR_REMOTE_APP_HOME to deploy outside the remote ~/.config/herdr-app.\n' >&2
+    exit 1
+fi
+if [[ "$remote_bash" == *"'"* ]]; then
+    printf 'Remote shell must not contain single quotes\n' >&2
+    exit 1
+fi
+for value in "$remote_home"; do
+    if [[ "$value" == *"'"* || "$value" == *'"'* || "$value" == *'$'* || "$value" == *'\'* ]]; then
+        printf 'Remote app home must not contain quotes, backslashes or dollar signs\n' >&2
+        exit 1
+    fi
+done
+for file in herdr-app/layouts/gd.json scripts/deploy-herdr-config; do
+    if [[ ! -f "$repo/$file" ]]; then
+        printf 'Missing Herdr configuration: %s/%s\n' "$repo" "$file" >&2
+        exit 1
+    fi
+done
+"$repo/scripts/deploy-herdr-config" --check-only >/dev/null
+stage="herdr-remote-deploy-$(date +%Y%m%d-%H%M%S)-$$"
+deploy_command="cd ~/$stage && bash scripts/deploy-herdr-config"
+if [[ -n "$remote_home" ]]; then
+    deploy_command="cd ~/$stage && HERDR_APP_HOME=\"$remote_home\" bash scripts/deploy-herdr-config"
+fi
+cleanup() {
+    ssh "$host" "$remote_bash -c 'rm -rf ~/$stage'" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+printf 'Copying Herdr configuration to %s:~/%s\n' "$host" "$stage"
+ssh "$host" "$remote_bash -c 'mkdir -p ~/$stage'"
+tar czf - --exclude=node_modules -C "$repo" herdr-app scripts/deploy-herdr-config \
+    | ssh "$host" "$remote_bash -c 'tar -xzf - -C ~/$stage'"
+ssh "$host" "$remote_bash -c '$deploy_command'"
+printf 'Deployed to %s. Herdr reloads changed mods in place; select gd there if it is not active.\n' "$host"

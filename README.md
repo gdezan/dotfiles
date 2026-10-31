@@ -19,6 +19,29 @@ non-default Herdr home. On Windows, run the command from a Bash environment
 such as Git Bash. Select `gd` in Herdr after deployment; deployment does not
 switch layouts or remove the original `sessions` layout.
 
+Deploy to another machine over SSH when that machine has no clone of this
+repository:
+
+```sh
+make herdr-deploy-remote HOST=iss
+```
+
+The remote copy streams `herdr-app/` and the deploy script into a temporary
+`~/herdr-remote-deploy-*` directory, runs the same deploy script there, and
+removes the directory afterwards. It needs `tar` and `bash` on the remote host,
+plus the same Herdr, Node.js and npm requirements as a local deployment.
+`HERDR_REMOTE_BASH` overrides the remote shell, for a host whose SSH shell is not
+bash. The `iss` machine needs this because its SSH shell is PowerShell:
+
+```sh
+HERDR_REMOTE_BASH='& "C:/Program Files/Git/bin/bash.exe"' make herdr-deploy-remote HOST=iss
+```
+
+Set `HERDR_REMOTE_APP_HOME` to deploy outside the remote `~/.config/herdr-app`,
+and `HERDR_REMOTE_HOST` instead of passing `HOST`. Both scripts run
+`--check-only` validation before anything is copied, so an incomplete
+repository fails locally.
+
 Edit the repository copies and redeploy to share changes. Edits made directly
 in Herdr's home are not automatically copied back to the repository. The layout
 and its cloned mods were based on Herdr 0.1.8; review compatibility when Herdr

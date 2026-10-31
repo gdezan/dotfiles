@@ -27,6 +27,14 @@ for file in "${required[@]}"; do
         exit 1
     fi
 done
+if [[ $# -gt 0 && $1 != --check-only ]]; then
+    printf 'Usage: %s [--check-only]\n' "$0" >&2
+    exit 1
+fi
+if [[ ${1:-} == --check-only ]]; then
+    printf 'Herdr configuration is complete\n'
+    exit 0
+fi
 for dir in "$app_home/layouts" "$app_home/mods"; do
     if [[ -L "$dir" || ( -e "$dir" && ! -d "$dir" ) ]]; then
         printf 'Herdr configuration parent is not a directory or is a symlink: %s\n' "$dir" >&2
