@@ -18,7 +18,7 @@ done
 for file in package.json package-lock.json read-sessions.mjs session-reader.mjs; do
     required+=("mods/session-history/$file")
 done
-for file in git.js panel.js dialogs.js ui.js diff.js source.svg; do
+for file in git.js panel.js dialogs.js ui.js diff.js source.svg check.svg chevron-down.svg chevron-right.svg close.svg discard.svg file.svg git-branch.svg minus.svg plus.svg refresh.svg; do
     required+=("mods/source/$file")
 done
 for file in "${required[@]}"; do

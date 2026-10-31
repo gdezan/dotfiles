@@ -12,12 +12,13 @@ test('Herdr overlay props select the requested view and retain the close target'
   class Panel extends Controller {}
   class Picker extends Controller {}
   class Diff extends Controller {}
+  class MainDiff extends Controller {}
   class Discard extends Controller {}
   const dependencies = {
     'gpui-kit': { View: class {} },
     herdr: { props: () => overlayProps },
     './panel.js': { default: Panel },
-    './dialogs.js': { Picker, Diff, Discard },
+    './dialogs.js': { Picker, Diff, MainDiff, Discard },
   };
   const code = await readFile(new URL('./main.js', import.meta.url), 'utf8');
   const module = new vm.SourceTextModule(code, { context });
@@ -29,7 +30,7 @@ test('Herdr overlay props select the requested view and retain the close target'
   });
   await module.evaluate();
   const Source = module.namespace.default;
-  for (const [view, Expected] of [['diff', Diff], ['picker', Picker], ['discard', Discard]]) {
+  for (const [view, Expected] of [['diff', Diff], ['diff-main', MainDiff], ['picker', Picker], ['discard', Discard]]) {
     overlayProps = { view, overlay: `overlay-${view}`, path: 'example.txt' };
     const source = new Source();
     source.init(undefined, {});

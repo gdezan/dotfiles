@@ -27,7 +27,7 @@ for mod in agents-session agent-session-menu usage-tabs provider-usage session-h
     cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
 done
 cmp "$repo/herdr-app/mods/menu-hc/copy.svg" "$HERDR_APP_HOME/mods/menu-hc/copy.svg"
-for file in git.js panel.js dialogs.js ui.js diff.js source.svg; do
+for file in git.js panel.js dialogs.js ui.js diff.js source.svg close.svg; do
     cmp "$repo/herdr-app/mods/source/$file" "$HERDR_APP_HOME/mods/source/$file"
 done
 test -f "$HERDR_APP_HOME/mods/session-history/node_modules/installed"
