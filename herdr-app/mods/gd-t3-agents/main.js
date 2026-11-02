@@ -20,6 +20,12 @@ const sortOf = () => SORTS.find((s) => s.id === shared("agents.sort")) ?? SORTS[
 const SECTION = { 4: "Needs you", 3: "Done", 2: "Working", 1: "Idle" };
 const SECTION_STATUS = { 4: "blocked", 3: "done", 2: "working" };
 
+function agentSessionName(agent, terminal) {
+  const isPi = (agent.app ?? terminal?.report?.app ?? agent.program?.key) === "pi";
+  const name = isPi ? terminal?.report?.msg : agent.title;
+  return name?.trim() || "-";
+}
+
 // The agent's icon from the app's program table: a one-color glyph or a picture.
 function icon(p, size, color) {
   if (!p?.icon) return null;
@@ -159,7 +165,7 @@ export default class Agents extends View {
       .pl(8 + s.depth * 20)
       .pr(8)
       .rounded(8)
-      .h(30)
+      .h(42)
       .flex_none()
       .items_center()
       .gap(8)
@@ -171,12 +177,13 @@ export default class Agents extends View {
       // Upstream's 9px turn, hung from each ancestor's icon center (17px, then every 20px), ending 4px short of this icon.
       .children(s.lines.flatMap((l, j) => [
         l === "│" || l === "├" ? div().absolute().left(16.25 + 20 * j).top(0).bottom(0).w(1.5).bg(t.input) : null,
-        l === "├" || l === "└" ? div().absolute().left(16.25 + 20 * j).top(-4).h(19).w(9.75).border_l(1.5).border_b(1.5).rounded_bl(6).border_color(t.input) : null,
+        l === "├" || l === "└" ? div().absolute().left(16.25 + 20 * j).top(-4).h(25).w(9.75).border_l(1.5).border_b(1.5).rounded_bl(6).border_color(t.input) : null,
       ].filter(Boolean)))
       .child(h_flex().size(18).flex_none().items_center().justify_center()
         .when(Boolean(pic), el => el.child(pic)))
-      .child(h_flex().flex_1().min_w(0).overflow_hidden()
-        .child(div().min_w(0).truncate().text_color(on ? t.foreground : t.muted).child(name)))
+      .child(v_flex().flex_1().min_w(0).gap(2)
+        .child(div().truncate().text_color(on ? t.foreground : t.muted).child(name))
+        .child(div().truncate().text_size(11).text_color(t.muted).child(agentSessionName(k, k))))
       .child(this.status(t, { status: st }).id(`sub-status-${k.address}`));
   }
 
@@ -293,7 +300,7 @@ export default class Agents extends View {
         .relative()
         .w_full().min_w(0)
         .px(8)
-        .h(30)
+        .h(46)
         .flex_none()
         .rounded(8)
         .items_center()
@@ -313,9 +320,11 @@ export default class Agents extends View {
             cx.stop_propagation();
             this.toggleFold(a.address, cx);
           })).when(Boolean(toggle), el => el.child(toggle)))
-        .child(h_flex().flex_1().min_w(0).gap(8).items_center()
-          .child(div().min_w(0).truncate().text_color(idle ? t.muted : t.foreground).child(name))
-          .when(Boolean(where), el => el.child(div().flex_1().flex_shrink(1000).min_w(0).truncate().text_size(12).text_color(t.dim).child(where))))
+        .child(v_flex().flex_1().min_w(0).gap(2)
+          .child(h_flex().min_w(0).gap(8).items_center()
+            .child(div().min_w(0).truncate().text_color(idle ? t.muted : t.foreground).child(name))
+            .when(Boolean(where), el => el.child(div().flex_1().flex_shrink(1000).min_w(0).truncate().text_size(12).text_color(t.dim).child(where))))
+          .child(div().truncate().text_size(11).text_color(t.muted).child(agentSessionName(a, all.find(terminal => terminal.address === a.address)))))
         .when(Boolean(machine), el => el.child(div().text_size(11).text_color(t.dim).child(machine)))
         .child(h_flex().id(`controls-${a.address}`).flex_none().items_center().gap(4)
           .when(folded, el => el.child(fold(a, subs)))

@@ -97,6 +97,17 @@ function fixture(width) {
   return { ...env, load, slots, state, calls, overlays, stores, labelled, shown };
 }
 
+{
+  const f = fixture(268);
+  f.terminals()[0].report = { app: "pi", msg: "session title" };
+  const ag = f.load("gd-t3-agents");
+  const row = find(ag.render(cx), "ag-t0");
+  assert.equal(row.style.h, 46, "agent rows use gd's taller two-line styling");
+  assert.ok(strings(row).includes("session title"), "agent rows show the session title on the second line");
+  fire(row, "on_click", {}, cx);
+  assert.deepEqual(f.calls.pop(), ["agent.focus", { terminal: "t0" }], "rows keep T3 agent-view selection");
+}
+
 for (const width of [180, 200, 240, 268, 480]) {
   const f = fixture(width);
   const sp = f.load("gd-t3-spaces"), ag = f.load("gd-t3-agents");
@@ -602,8 +613,9 @@ for (const width of [180, 200, 240, 268, 480]) {
   fire(find(menu, "sort-priority"), "on_click", {}, cx);
   assert.equal(f.state["agents.sort"], "priority");
   const byPriority = find(ag.render(cx), "ag-t0"), names = byPriority.items[1];
-  assert.deepEqual(strings(names), ["local task", "project 0"], "without a space header the task leads and its space follows");
-  assert.deepEqual([names.items[1].style.text_color, names.items[1].style.text_size, names.items[1].style.flex_shrink], [f.theme().dim, 12, 1000], "the space is dim, smaller, and gives way first");
+  assert.deepEqual(strings(names), ["local task", "project 0", "-"], "without a space header the task leads and its space follows, above the session title");
+  const spaceName = names.items[0].items[1];
+  assert.deepEqual([spaceName.style.text_color, spaceName.style.text_size, spaceName.style.flex_shrink], [f.theme().dim, 12, 1000], "the space is dim, smaller, and gives way first");
 }
 
 {
