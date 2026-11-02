@@ -6,18 +6,24 @@ import vm from 'node:vm';
 async function mainDiffHarness() {
   const context = vm.createContext({});
   let target = { id: 'first', space: 'space', tab: 'tab', repo: { key: 'repo' }, path: 'first.txt', group: 'staged' };
-  let focus = { space: 'space', tab: 'tab' }, returned = 0;
+  let focus = { space: 'space', tab: 'tab' }, graphTarget = null, returned = 0;
+  class Graph {
+    init(_cx, options) { Object.assign(this, options); }
+    render() { return this.folder; }
+    close() { this.closed = true; }
+  }
   const element = { size_full() { return this; }, bg() { return this; } };
   const mocks = {
     'gpui-kit': { div: () => element },
     'gpui-base': { h_flex() {}, v_flex() {}, InputState: {}, Checkbox: {}, v_virtual_list() {}, Scrollbar: {} },
-    herdr: { settings() {}, pickFolder() {}, setShared() {}, shared: () => target, focused: () => focus, closeOverlay() {} },
+    herdr: { settings() {}, pickFolder() {}, setShared() {}, shared: key => key === 'source.graph' ? graphTarget : target, focused: () => focus, closeOverlay() {} },
     './ui.js': {
       git: {}, selections() {}, revision() {}, invalidate() {}, sourceTheme: () => ({ background: '#000' }),
       button() {}, input() {}, message() {}, dialog() {}, openDiscard() {}, action() {}, closeSourceDiff() {},
       showSourceTerminals() { returned++; },
     },
     './diff.js': { diffRows() {} },
+    './graph/graph.js': { Graph },
   };
   const module = new vm.SourceTextModule(await readFile(new URL('./dialogs.js', import.meta.url), 'utf8'), { context });
   await module.link(name => {
@@ -28,8 +34,8 @@ async function mainDiffHarness() {
   const { MainDiff, Diff } = module.namespace;
   Diff.prototype.init = function (props) { this.props = props; this.width = 1000; this.mode = 'split'; };
   Diff.prototype.render = function () { return this.props.path; };
-  const main = new MainDiff(); main.init();
-  return { main, setTarget(value) { target = value; }, setFocus(value) { focus = value; }, get returned() { return returned; } };
+  const main = new MainDiff(); main.init({}, { focus_handle: () => ({}) });
+  return { main, setTarget(value) { target = value; }, setGraph(value) { graphTarget = value; }, setFocus(value) { focus = value; }, get returned() { return returned; } };
 }
 
 test('switching files preserves measured width and display mode', async () => {
@@ -41,6 +47,17 @@ test('switching files preserves measured width and display mode', async () => {
   assert.equal(h.main.diff.width, 620);
   assert.equal(h.main.diff.mode, 'unified');
   assert.equal(h.main.diff.props.embedded, true);
+});
+
+test('embedded graph follows its repository and stops when a diff replaces it', async () => {
+  const h = await mainDiffHarness();
+  h.setGraph({ id: 'graph', space: 'space', tab: 'tab', repo: { root: '/project', on: 'remote' } });
+  assert.equal(h.main.render({}), '/project');
+  const graph = h.main.graph;
+  assert.equal(graph.on, 'remote');
+  h.setGraph(null);
+  assert.equal(h.main.render({}), 'first.txt');
+  assert.equal(graph.closed, true);
 });
 
 test('a missing target or a different tab returns the main view to terminals', async () => {

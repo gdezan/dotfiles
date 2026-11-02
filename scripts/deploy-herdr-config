@@ -23,6 +23,12 @@ done
 for file in git.js panel.js dialogs.js ui.js diff.js source.svg check.svg chevron-down.svg chevron-right.svg close.svg discard.svg file.svg git-branch.svg minus.svg plus.svg refresh.svg; do
     required+=("mods/source/$file")
 done
+for file in act.js dialog.js execute.js git.js graph.js lanes.js menu.js LICENSE icons/LICENSE-lucide.txt; do
+    required+=("mods/source/graph/$file")
+done
+for icon in branch check cherry cloud commit copy fetch folder graph merge plus push rebase refresh rename reset revert stash tag trash; do
+    required+=("mods/source/graph/icons/$icon.svg")
+done
 required+=(mods/gd-t3-agents/name.js mods/gd-t3-chrome/settings.svg
     mods/gd-t3-focus/name.js mods/gd-t3-focus/list-filter.svg mods/gd-t3-focus/undo.svg
     mods/gd-t3-pane/name.js mods/gd-t3-pane/close.svg mods/gd-t3-pane/split-down.svg

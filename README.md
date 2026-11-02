@@ -80,6 +80,15 @@ not changed since it was displayed. The discard confirmation rechecks the file.
 Neither check can lock out a concurrent Git or file edit between the recheck and
 the operation, so avoid committing or discarding while an agent is editing.
 
+Each Source repository has a graph button that opens its branch and commit history.
+The graph and its Git actions are adapted from [herdr-git-graph](https://github.com/rabeeh-ta/herdr-git-graph)
+at commit `b70e795`; its MIT license and the icons’ license are under
+`herdr-app/mods/source/graph/`. Actions include checkout, rebase, reset, push,
+and deletion. They retain the upstream confirmations and context checks; local
+branch checkout and fetch run without a confirmation. Push, fetch, and remote
+branch deletion contact the configured Git remote. The upstream automatic GitHub
+update check is not included.
+
 Source handles whole-file changes only. Resolve conflicts in an editor or
 terminal; dirty submodule contents are not shown in the parent, while checkout
 pointer changes are. Diff previews are limited to 3,000 rows and 4,000 characters

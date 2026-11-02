@@ -45,6 +45,7 @@ test('selecting and deselecting a discovered child repository updates the tab', 
       openDiscard() {}, action() {}, closeSourceDiff() {}, showSourceTerminals() {},
     },
     './diff.js': { diffRows() {} },
+    './graph/graph.js': { Graph: class {} },
   };
   const context = vm.createContext({});
   const module = new vm.SourceTextModule(await readFile(new URL('./dialogs.js', import.meta.url), 'utf8'), { context });

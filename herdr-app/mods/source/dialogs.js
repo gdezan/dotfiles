@@ -3,6 +3,7 @@ import { h_flex, v_flex, InputState, Checkbox, v_virtual_list, Scrollbar } from 
 import { settings, pickFolder, setShared, shared, focused, closeOverlay } from 'herdr';
 import { git, selections, revision, invalidate, sourceTheme, button, input, message, dialog, openDiscard, action, closeSourceDiff, showSourceTerminals } from './ui.js';
 import { diffRows } from './diff.js';
+import { Graph } from './graph/graph.js';
 
 export class Picker {
   init(props, cx) {
@@ -91,14 +92,24 @@ export class Picker {
 }
 
 export class MainDiff {
-  init() { this.diff = null; this.targetId = null; }
+  init(_props, cx) { this.diff = null; this.targetId = null; this.graph = null; this.handle = cx.focus_handle(); }
 
   render(cx) {
-    const target = shared('source.diff'), focus = focused();
+    const graphTarget = shared('source.graph'), target = graphTarget ?? shared('source.diff'), focus = focused();
     if (!target || (focus?.space && focus?.tab && (focus.space !== target.space || focus.tab !== target.tab))) {
+      this.graph?.close(); this.graph = null;
       showSourceTerminals();
       return div().size_full().bg(sourceTheme().background);
     }
+    if (graphTarget) {
+      if (this.graph?.targetId !== target.id) {
+        this.graph?.close();
+        this.graph = new Graph();
+        this.graph.init(cx, { folder: target.repo.root, on: target.repo.on, targetId: target.id, handle: this.handle });
+      }
+      return this.graph.render(cx);
+    }
+    this.graph?.close(); this.graph = null;
     if (this.targetId !== target.id) {
       const previous = this.diff;
       this.targetId = target.id;
@@ -108,6 +119,8 @@ export class MainDiff {
     }
     return this.diff.render(cx);
   }
+
+  close() { this.graph?.close(); }
 }
 
 export class Diff {

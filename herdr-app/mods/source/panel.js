@@ -2,7 +2,7 @@ import { div, svg } from 'gpui-kit';
 import { h_flex, v_flex, InputState } from 'gpui-base';
 import { spaces, panes, focused, shared, setShared, openOverlay, watchFolder } from 'herdr';
 import { FILE_LIMIT } from './git.js';
-import { git, selections, revision, sourceTheme, button, input, message, openDiff, currentSourceDiff, openDiscard, action } from './ui.js';
+import { git, selections, revision, sourceTheme, button, input, message, openGraph, openDiff, currentSourceDiff, openDiscard, action } from './ui.js';
 
 function sourceIconButton(id, icon, tooltip, action, disabled = false) {
   const t = sourceTheme();
@@ -193,7 +193,8 @@ export default class Panel {
         .child(button(`source-repo-${repo.key}`, '', cx => { entry.collapsed = !entry.collapsed; cx.notify(); }, { ghost: true, tooltip: `${repo.on ? `${repo.on}:` : ''}${repo.root}` }).flex_1().min_w(0).justify_start().px(4).text_size(13).font_semibold().text_color(t.foreground).overflow_hidden()
           .child(svg(`mods/source/chevron-${entry.collapsed ? 'right' : 'down'}.svg`).size(13).flex_none().text_color(t.muted))
           .child(div().ml(6).min_w(0).truncate().child(repo.name)))
-        .when(Boolean(state), el => el.child(div().pr(4).text_size(10).text_color(t.dim).child(`${state.files.length} ${state.files.length === 1 ? 'file' : 'files'}`))))
+        .when(Boolean(state), el => el.child(div().pr(4).text_size(10).text_color(t.dim).child(`${state.files.length} ${state.files.length === 1 ? 'file' : 'files'}`)))
+        .child(sourceIconButton(`source-graph-${repo.key}`, 'graph/icons/graph', `Open history for ${repo.name}`, () => openGraph(repo))))
       .when(!entry.collapsed, el => el
         .child(h_flex().px(14).pb(10).gap(7).items_center()
           .child(svg('mods/source/git-branch.svg').size(13).flex_none().text_color(t.muted))

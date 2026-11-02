@@ -14,11 +14,17 @@ test('Herdr overlay props select the requested view and retain the close target'
   class Diff extends Controller {}
   class MainDiff extends Controller {}
   class Discard extends Controller {}
+  class Graph extends Controller {}
+  class Menu extends Controller {}
+  class Dialog extends Controller {}
   const dependencies = {
     'gpui-kit': { View: class {} },
     herdr: { props: () => overlayProps },
     './panel.js': { default: Panel },
     './dialogs.js': { Picker, Diff, MainDiff, Discard },
+    './graph/graph.js': { Graph },
+    './graph/menu.js': { Menu },
+    './graph/dialog.js': { Dialog },
   };
   const code = await readFile(new URL('./main.js', import.meta.url), 'utf8');
   const module = new vm.SourceTextModule(code, { context });
@@ -36,6 +42,14 @@ test('Herdr overlay props select the requested view and retain the close target'
     source.init(undefined, {});
     assert.ok(source.controller instanceof Expected, `${view} should not render the Source panel`);
     assert.equal(source.controller.props.overlay, `overlay-${view}`);
+  }
+  for (const [view, Expected] of [['graph', Graph], ['graph-menu', Menu], ['graph-dialog', Dialog]]) {
+    overlayProps = { view };
+    const source = new Source();
+    const cx = {};
+    source.init(undefined, cx);
+    assert.ok(source.controller instanceof Expected);
+    assert.equal(source.controller.props, cx);
   }
   overlayProps = {};
   const source = new Source();

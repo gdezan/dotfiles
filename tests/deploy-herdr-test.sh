@@ -40,6 +40,8 @@ cmp "$repo/herdr-app/mods/menu-hc/copy.svg" "$HERDR_APP_HOME/mods/menu-hc/copy.s
 for file in git.js panel.js dialogs.js ui.js diff.js source.svg close.svg; do
     cmp "$repo/herdr-app/mods/source/$file" "$HERDR_APP_HOME/mods/source/$file"
 done
+cmp "$repo/herdr-app/mods/source/graph/graph.js" "$HERDR_APP_HOME/mods/source/graph/graph.js"
+cmp "$repo/herdr-app/mods/source/graph/LICENSE" "$HERDR_APP_HOME/mods/source/graph/LICENSE"
 test -f "$HERDR_APP_HOME/mods/session-history/node_modules/installed"
 grep -qx unrelated "$HERDR_APP_HOME/layouts/main.json"
 grep -qx state "$HERDR_APP_HOME/view.json"
@@ -76,6 +78,11 @@ if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
     echo 'incomplete T3 asset check unexpectedly succeeded' >&2; exit 1
 fi
 cp "$repo/herdr-app/mods/gd-t3-pane/zoom.svg" "$incomplete/herdr-app/mods/gd-t3-pane/zoom.svg"
+rm "$incomplete/herdr-app/mods/source/graph/graph.js"
+if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
+    echo 'missing Source graph unexpectedly succeeded' >&2; exit 1
+fi
+cp "$repo/herdr-app/mods/source/graph/graph.js" "$incomplete/herdr-app/mods/source/graph/graph.js"
 rm "$incomplete/herdr-app/mods/source/git.js"
 if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
     echo 'incomplete check unexpectedly succeeded' >&2; exit 1

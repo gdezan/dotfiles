@@ -102,6 +102,21 @@ test('an in-flight commit stays on its captured checkout after tab/cwd changes a
   assert.equal(entry.busy, null);
 });
 
+test('opens history for the selected repository, not the focused terminal folder', async () => {
+  const h = await harness();
+  h.ui.openGraph({ ...h.second, on: 'vps' });
+  const graph = h.store.get('source.graph');
+  assert.equal(graph.repo.root, '/portal');
+  assert.equal(graph.repo.on, 'vps');
+  assert.equal(graph.tab, 'tb1');
+  assert.equal(h.calls[0][0], 'layout.select');
+  assert.equal(h.calls[0][1].child, 'source-diff-main');
+  assert.equal(h.overlays.length, 0);
+  h.ui.closeSourceGraph(graph.id);
+  assert.equal(h.store.get('source.graph'), null);
+  assert.equal(h.calls[1][1].child, 'main');
+});
+
 test('diff colors use the gdezan-material editor and Git palette', async () => {
   const h = await harness(), colors = h.ui.sourceTheme();
   assert.equal(colors.foreground, '#C7D6D6');

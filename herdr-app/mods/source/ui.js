@@ -82,9 +82,28 @@ export function closeSourceDiff(id) {
   showSourceTerminals();
 }
 
+export function closeSourceGraph(id) {
+  const current = shared('source.graph');
+  if (!current || (id && current.id !== id)) return;
+  setShared('source.graph', null);
+  showSourceTerminals();
+}
+
+export function openGraph(repo) {
+  const focus = focused(), stack = sourceMainStack();
+  if (focus?.space && focus?.tab && stack) {
+    setShared('source.diff', null);
+    setShared('source.graph', { id: `${Date.now()}-${Math.random()}`, space: focus.space, tab: focus.tab, repo });
+    run('layout.select', { stack: stack.id, child: 'source-diff-main' });
+  } else {
+    openOverlay({ mod: 'source', kind: 'dialog', modal: true, width: .92, height: .86, props: { view: 'graph', folder: repo.root, on: repo.on } });
+  }
+}
+
 export function openDiff(repo, file, group) {
   const focus = focused(), stack = sourceMainStack();
   if (focus?.space && focus?.tab && stack) {
+    setShared('source.graph', null);
     setShared('source.diff', { id: `${Date.now()}-${Math.random()}`, space: focus.space, tab: focus.tab, repo, path: file.path, group });
     run('layout.select', { stack: stack.id, child: 'source-diff-main' });
   } else {
