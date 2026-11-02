@@ -126,6 +126,19 @@ test('opening and closing a diff switches the main stack without changing termin
   assert.equal(h.calls[1][1].child, 'main');
 });
 
+test('T3 opens and closes diffs in its view stack', async () => {
+  const h = await harness();
+  h.setLayout({ id: 'view', type: 'stack', active: 'agent', children: [{ id: 'main' }, { id: 'agent' }, { id: 'source-diff-main', content: { mod: 'source' } }] });
+  h.ui.openDiff(h.first, { path: 'example.txt' }, 'unstaged');
+  assert.equal(h.overlays.length, 0);
+  assert.equal(h.calls[0][1].stack, 'view');
+  assert.equal(h.calls[0][1].child, 'source-diff-main');
+  assert.equal(h.ui.currentSourceDiff().path, 'example.txt');
+  h.ui.closeSourceDiff();
+  assert.equal(h.calls[1][1].stack, 'view');
+  assert.equal(h.calls[1][1].child, 'main');
+});
+
 test('a stale diff action cannot close a newer selection', async () => {
   const h = await harness();
   h.ui.openDiff(h.first, { path: 'old.txt' }, 'unstaged');

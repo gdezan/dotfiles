@@ -42,4 +42,4 @@ ssh "$host" "$remote_bash -c 'mkdir -p ~/$stage'"
 tar czf - --exclude=node_modules -C "$repo" herdr-app scripts/deploy-herdr-config \
     | ssh "$host" "$remote_bash -c 'tar -xzf - -C ~/$stage'"
 ssh "$host" "$remote_bash -c '$deploy_command'"
-printf 'Deployed to %s. Herdr reloads changed mods in place; select gd there if it is not active.\n' "$host"
+printf 'Deployed to %s. Herdr reloads changed mods in place; select gd or gd-t3 there.\n' "$host"

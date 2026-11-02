@@ -2,22 +2,32 @@
 
 ## Herdr layout
 
-`herdr-app/` contains the `gd` layout and its seven custom mods, based on
-`iss`'s `sessions` layout. Install Herdr, Node.js and npm first, then deploy with Bash and make:
+`herdr-app/` contains the `gd` layout and `gd-t3`, a customized copy of
+[JinJieBeWater/herdr-t3](https://github.com/JinJieBeWater/herdr-t3), alongside
+their mods. The T3-derived files were modified for the Source, Usage, Sessions,
+and Files panels and the terminal menu; their Apache 2.0 license is in
+`herdr-app/T3-LICENSE`. `gd` is based on `iss`'s `sessions` layout. Install Herdr,
+Node.js and npm first, then deploy with Bash and make:
 
 ```sh
 make herdr-deploy
 ```
 
-Deployment installs the Sessions reader's pinned npm dependency, copies `gd.json`
-and replaces only the seven named mod directories. The install requires network
-access and finishes before existing targets are replaced. Deployment backs up
+Deployment installs the Sessions reader's pinned npm dependency, copies both
+layouts and the `gd-t3` preview, and replaces only the named mod directories.
+The install requires network access and finishes before existing targets are replaced. Deployment backs up
 existing targets, including extra files and symlinks, under
 `~/.local/state/dotfiles-backups/herdr-*`. It leaves shipped layouts and mods,
 settings, keys, and runtime state alone. Set `HERDR_APP_HOME` to deploy to a
 non-default Herdr home. On Windows, run the command from a Bash environment
-such as Git Bash. Select `gd` in Herdr after deployment; deployment does not
-switch layouts or remove the original `sessions` layout.
+such as Git Bash. Select `gd` or `gd-t3` in Herdr after deployment; deployment
+does not switch layouts or remove the original `sessions` layout.
+
+To enable the `gd-t3` keyboard shortcuts on another machine, merge the
+`layout:gd-t3` section from `herdr-app/gd-t3-keys.json` into that machine's
+`~/.config/herdr-app/keys.json`. Deployment does not edit keys or replace
+existing bindings. These shortcuts switch the sidebar (`Cmd+Shift+B`), toggle
+single-agent view (`Cmd+Shift+A`), and settle an agent in Focus (`Cmd+Shift+S`).
 
 Deploy to another machine over SSH when that machine has no clone of this
 repository:
@@ -44,8 +54,10 @@ repository fails locally.
 
 Edit the repository copies and redeploy to share changes. Edits made directly
 in Herdr's home are not automatically copied back to the repository. The layout
-and its cloned mods were based on Herdr 0.1.8; review compatibility when Herdr
-changes. Saved panel sizes and visibility are machine-local and are not copied.
+and its cloned mods were based on Herdr 0.1.8, while `gd-t3` is based on
+Herdr T3 at commit `bf05b354f5fc1ed80106a0d3fc7e02f0801d90b6`; review
+compatibility when Herdr changes. Saved panel sizes and visibility are
+machine-local and are not copied.
 The `iss` settings use LythMonoTerm Nerd Font; install it and select it in
 Herdr separately if desired.
 

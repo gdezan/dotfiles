@@ -1,0 +1,7 @@
+{
+  "layout:gd-t3": {
+    "cmd-shift-b": "gd-t3-chrome.sidebar",
+    "cmd-shift-a": "gd-t3-tabs.view",
+    "cmd-shift-s": "gd-t3-focus.settle"
+  }
+}

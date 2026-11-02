@@ -57,7 +57,7 @@ export function dialog(title, subtitle, body, footer, overlay, height, onClose) 
 
 function sourceMainStack(node = layout()) {
   if (!node || typeof node !== 'object') return null;
-  if (node.id === 'main-view' && node.type === 'stack' && node.children?.some(child => child.id === 'main') && node.children?.some(child => child.id === 'source-diff-main' && child.content?.mod === 'source')) return node;
+  if (['main-view', 'view'].includes(node.id) && node.type === 'stack' && node.children?.some(child => child.id === 'main') && node.children?.some(child => child.id === 'source-diff-main' && child.content?.mod === 'source')) return node;
   for (const child of node.children ?? []) {
     const found = sourceMainStack(child);
     if (found) return found;
@@ -71,7 +71,8 @@ export function currentSourceDiff() {
 }
 
 export function showSourceTerminals() {
-  if (sourceMainStack()?.active === 'source-diff-main') run('layout.select', { stack: 'main-view', child: 'main' });
+  const stack = sourceMainStack();
+  if (stack?.active === 'source-diff-main') run('layout.select', { stack: stack.id, child: 'main' });
 }
 
 export function closeSourceDiff(id) {
@@ -82,10 +83,10 @@ export function closeSourceDiff(id) {
 }
 
 export function openDiff(repo, file, group) {
-  const focus = focused();
-  if (focus?.space && focus?.tab && sourceMainStack()) {
+  const focus = focused(), stack = sourceMainStack();
+  if (focus?.space && focus?.tab && stack) {
     setShared('source.diff', { id: `${Date.now()}-${Math.random()}`, space: focus.space, tab: focus.tab, repo, path: file.path, group });
-    run('layout.select', { stack: 'main-view', child: 'source-diff-main' });
+    run('layout.select', { stack: stack.id, child: 'source-diff-main' });
   } else {
     // Other layouts without a Source main view keep the existing dialog.
     openOverlay({ mod: 'source', kind: 'dialog', modal: true, width: .92, height: .86, props: { view: 'diff', repo, path: file.path, group } });

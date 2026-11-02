@@ -4,8 +4,10 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 source_dir="$repo/herdr-app"
 app_home=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
 backup_root="$HOME/.local/state/dotfiles-backups"
-mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source)
-required=(layouts/gd.json)
+mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source
+    gd-t3-agents gd-t3-chrome gd-t3-focus gd-t3-new-menu gd-t3-pane gd-t3-spaces gd-t3-tabs)
+layouts=(layouts/gd.json layouts/gd-t3.json layouts/gd-t3.svg)
+required=("${layouts[@]}" gd-t3-keys.json T3-LICENSE)
 for mod in "${mods[@]}"; do
     required+=("mods/$mod/main.js" "mods/$mod/mod.json")
 done
@@ -21,6 +23,12 @@ done
 for file in git.js panel.js dialogs.js ui.js diff.js source.svg check.svg chevron-down.svg chevron-right.svg close.svg discard.svg file.svg git-branch.svg minus.svg plus.svg refresh.svg; do
     required+=("mods/source/$file")
 done
+required+=(mods/gd-t3-agents/name.js mods/gd-t3-chrome/settings.svg
+    mods/gd-t3-focus/name.js mods/gd-t3-focus/list-filter.svg mods/gd-t3-focus/undo.svg
+    mods/gd-t3-pane/name.js mods/gd-t3-pane/close.svg mods/gd-t3-pane/split-down.svg
+    mods/gd-t3-pane/split-right.svg mods/gd-t3-pane/unzoom.svg mods/gd-t3-pane/zoom.svg
+    mods/gd-t3-tabs/name.js mods/gd-t3-tabs/win-close.svg mods/gd-t3-tabs/win-max.svg
+    mods/gd-t3-tabs/win-min.svg mods/gd-t3-tabs/win-restore.svg)
 for file in "${required[@]}"; do
     if [[ ! -f "$source_dir/$file" ]]; then
         printf 'Missing Herdr configuration: %s\n' "$source_dir/$file" >&2
@@ -41,16 +49,20 @@ for dir in "$app_home/layouts" "$app_home/mods"; do
         exit 1
     fi
 done
-if [[ -d "$app_home/layouts/gd.json" && ! -L "$app_home/layouts/gd.json" ]]; then
-    printf 'Herdr layout target is a directory: %s\n' "$app_home/layouts/gd.json" >&2
-    exit 1
-fi
+for path in "${layouts[@]}"; do
+    if [[ -d "$app_home/$path" && ! -L "$app_home/$path" ]]; then
+        printf 'Herdr layout target is a directory: %s\n' "$app_home/$path" >&2
+        exit 1
+    fi
+done
 umask 077
 mkdir -p "$app_home/layouts" "$app_home/mods" "$backup_root"
 stage=$(mktemp -d "$app_home/.herdr-deploy-XXXXXXXX")
 trap 'rm -rf "$stage"' EXIT
 mkdir -p "$stage/layouts" "$stage/mods"
-cp "$source_dir/layouts/gd.json" "$stage/layouts/gd.json"
+for path in "${layouts[@]}"; do
+    cp "$source_dir/$path" "$stage/$path"
+done
 for mod in "${mods[@]}"; do
     cp -R "$source_dir/mods/$mod" "$stage/mods/$mod"
     rm -f "$stage/mods/$mod/gpui-kit.d.ts" "$stage/mods/$mod/jsconfig.json"
@@ -59,14 +71,14 @@ rm -rf "$stage/mods/session-history/node_modules"
 (cd "$stage/mods/session-history" && npm ci --omit=optional --legacy-peer-deps --ignore-scripts --no-audit --no-fund)
 backup=$(mktemp -d "$backup_root/herdr-$(date +%Y%m%d-%H%M%S)-XXXXXXXX")
 mkdir -p "$backup/layouts" "$backup/mods"
-for path in layouts/gd.json "${mods[@]/#/mods/}"; do
+for path in "${layouts[@]}" "${mods[@]/#/mods/}"; do
     if [[ -e "$app_home/$path" || -L "$app_home/$path" ]]; then
         cp -a "$app_home/$path" "$backup/$path"
     fi
 done
-for path in layouts/gd.json "${mods[@]/#/mods/}"; do
+for path in "${layouts[@]}" "${mods[@]/#/mods/}"; do
     rm -rf "${app_home:?}/${path:?}"
     mv "$stage/$path" "$app_home/$path"
 done
 printf 'Backed up existing Herdr files to %s\n' "$backup"
-printf 'Deployed layout gd and %s mods to %s. Select gd in Herdr.\n' "${#mods[@]}" "$app_home"
+printf 'Deployed layouts gd and gd-t3 and %s mods to %s. Select a layout in Herdr.\n' "${#mods[@]}" "$app_home"

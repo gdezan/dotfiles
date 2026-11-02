@@ -16,12 +16,22 @@ EOF
 chmod +x "$tmp/bin/npm"
 export PATH="$tmp/bin:$PATH"
 printf 'old layout\n' > "$HERDR_APP_HOME/layouts/gd.json"
+printf 'old t3 layout\n' > "$HERDR_APP_HOME/layouts/gd-t3.json"
+mkdir -p "$HERDR_APP_HOME/mods/gd-t3-tabs"
+printf 'old t3 mod\n' > "$HERDR_APP_HOME/mods/gd-t3-tabs/main.js"
 printf 'old mod\n' > "$HERDR_APP_HOME/mods/agents-session/main.js"
 printf 'local extra\n' > "$HERDR_APP_HOME/mods/agents-session/extra"
 printf 'unrelated\n' > "$HERDR_APP_HOME/layouts/main.json"
 printf 'state\n' > "$HERDR_APP_HOME/view.json"
+printf 'personal keys\n' > "$HERDR_APP_HOME/keys.json"
 "$repo/scripts/deploy-herdr-config"
 cmp "$repo/herdr-app/layouts/gd.json" "$HERDR_APP_HOME/layouts/gd.json"
+cmp "$repo/herdr-app/layouts/gd-t3.json" "$HERDR_APP_HOME/layouts/gd-t3.json"
+cmp "$repo/herdr-app/layouts/gd-t3.svg" "$HERDR_APP_HOME/layouts/gd-t3.svg"
+for mod in gd-t3-agents gd-t3-chrome gd-t3-focus gd-t3-new-menu gd-t3-pane gd-t3-spaces gd-t3-tabs; do
+    cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
+    cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
+done
 for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source; do
     cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
     cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
@@ -33,8 +43,11 @@ done
 test -f "$HERDR_APP_HOME/mods/session-history/node_modules/installed"
 grep -qx unrelated "$HERDR_APP_HOME/layouts/main.json"
 grep -qx state "$HERDR_APP_HOME/view.json"
+grep -qx 'personal keys' "$HERDR_APP_HOME/keys.json"
 backup=$(find "$HOME/.local/state/dotfiles-backups" -mindepth 1 -maxdepth 1 -type d -name 'herdr-*' -print -quit)
 grep -qx 'old layout' "$backup/layouts/gd.json"
+grep -qx 'old t3 layout' "$backup/layouts/gd-t3.json"
+grep -qx 'old t3 mod' "$backup/mods/gd-t3-tabs/main.js"
 grep -qx 'old mod' "$backup/mods/agents-session/main.js"
 grep -qx 'local extra' "$backup/mods/agents-session/extra"
 test ! -e "$HERDR_APP_HOME/mods/agents-session/extra"
@@ -53,6 +66,16 @@ fi
 "$incomplete/scripts/deploy-herdr-config"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/gpui-kit.d.ts"
 test ! -e "$HERDR_APP_HOME/mods/usage-tabs/jsconfig.json"
+rm "$incomplete/herdr-app/layouts/gd-t3.json"
+if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
+    echo 'missing T3 layout check unexpectedly succeeded' >&2; exit 1
+fi
+cp "$repo/herdr-app/layouts/gd-t3.json" "$incomplete/herdr-app/layouts/gd-t3.json"
+rm "$incomplete/herdr-app/mods/gd-t3-pane/zoom.svg"
+if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
+    echo 'incomplete T3 asset check unexpectedly succeeded' >&2; exit 1
+fi
+cp "$repo/herdr-app/mods/gd-t3-pane/zoom.svg" "$incomplete/herdr-app/mods/gd-t3-pane/zoom.svg"
 rm "$incomplete/herdr-app/mods/source/git.js"
 if "$incomplete/scripts/deploy-herdr-config" --check-only >/dev/null 2>&1; then
     echo 'incomplete check unexpectedly succeeded' >&2; exit 1

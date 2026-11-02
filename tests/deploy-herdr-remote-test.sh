@@ -8,7 +8,7 @@ cat > "$tmp/bin/ssh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '%s\n' "$*" >> "$SSH_LOG"
-count=$(wc -l < "$SSH_LOG")
+count=$(wc -l < "$SSH_LOG" | tr -d '[:space:]')
 cat > "$STDIN_DIR/$count"
 if [[ ${FAIL_DEPLOY:-0} == 1 && "$*" == *deploy-herdr-config* ]]; then
     exit 1
@@ -41,6 +41,9 @@ grep -q '^iss bash -c .rm -rf ~/herdr-remote-deploy-' "$SSH_LOG"
 
 tar tzf "$tmp/stdin/2" > "$tmp/tarball.txt"
 grep -qx 'herdr-app/layouts/gd.json' "$tmp/tarball.txt"
+grep -qx 'herdr-app/layouts/gd-t3.json' "$tmp/tarball.txt"
+grep -qx 'herdr-app/mods/gd-t3-tabs/main.js' "$tmp/tarball.txt"
+grep -qx 'herdr-app/gd-t3-keys.json' "$tmp/tarball.txt"
 grep -qx 'herdr-app/mods/source/main.js' "$tmp/tarball.txt"
 grep -qx 'scripts/deploy-herdr-config' "$tmp/tarball.txt"
 if grep -q 'node_modules/' "$tmp/tarball.txt"; then
