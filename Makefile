@@ -17,6 +17,7 @@ herdr-test:
 
 shell-test:
 	bash tests/deploy-shell-test.sh
+	bash tests/starship-width-test.sh
 	python3 tests/zsh-history-import-test.py
 	bash tests/wsl-startup-test.sh
 	bash tests/macos-shell-test.sh

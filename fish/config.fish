@@ -82,7 +82,24 @@ if status is-interactive
             end
         end
         __starship_update_gcloud
+        function __starship_fit_prompt
+            read --null --local prompt
+            set -l lines (string split \n -- "$prompt")
+            set -l width (math "max(1, $COLUMNS - 1)")
+            set -l separator ''
+            for line in $lines
+                printf '%s' "$separator"
+                set separator \n
+                if test (string length --visible -- "$line") -gt $width
+                    printf '%s\e[0m' (string shorten --max $width -- "$line")
+                else
+                    printf '%s' "$line"
+                end
+            end
+        end
         starship init fish | source
+        # Keep Starship's status and transient-prompt handling while fitting its normal prompt.
+        functions fish_prompt | string replace -r '^(\s*.*starship prompt --terminal-width=.*)$' '$1 | __starship_fit_prompt' | source
     end
 end
 
