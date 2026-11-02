@@ -100,12 +100,33 @@ function fixture(width) {
 {
   const f = fixture(268);
   f.terminals()[0].report = { app: "pi", msg: "session title" };
+  f.terminals()[0].labels = { "pi.session": "different session label" };
+  f.terminals().find(k => k.address === "child").report = { app: "pi", msg: "child session" };
   const ag = f.load("gd-t3-agents");
-  const row = find(ag.render(cx), "ag-t0");
+  let row = find(ag.render(cx), "ag-t0");
   assert.equal(row.style.h, 46, "agent rows use gd's taller two-line styling");
-  assert.ok(strings(row).includes("session title"), "agent rows show the session title on the second line");
+  assert.deepEqual(strings(row.items[1]), ["local task", "session title"], "grouped rows show the tab above the session title");
   fire(row, "on_click", {}, cx);
   assert.deepEqual(f.calls.pop(), ["agent.focus", { terminal: "t0" }], "rows keep T3 agent-view selection");
+  f.state["agents.sort"] = "priority";
+  row = find(ag.render(cx), "ag-t0");
+  assert.deepEqual(strings(row.items[1]), ["project 0", "· local task", "session title"], "priority rows show space and tab above the session title");
+  let stopped = false;
+  const eventCx = { ...cx, stop_propagation() { stopped = true; } };
+  fire(row, "on_mouse_down:right", {}, eventCx);
+  assert.ok(stopped, "session menu stops the row event");
+  assert.deepEqual(JSON.parse(JSON.stringify(f.overlays.pop())), { mod: "agent-session-menu", kind: "popup", width: 260, at: "pointer", props: { terminal: "t0", name: "session title" } });
+  stopped = false;
+  fire(find(ag.render(cx), "sub-child"), "on_mouse_down:right", {}, eventCx);
+  assert.ok(stopped, "sub-agent menu stops the row event");
+  assert.deepEqual(JSON.parse(JSON.stringify(f.overlays.pop())), { mod: "agent-session-menu", kind: "popup", width: 260, at: "pointer", props: { terminal: "child", name: "child session" } });
+  fire(find(ag.render(cx), "ag-vps/t2"), "on_mouse_down:right", {}, eventCx);
+  assert.equal(f.overlays.pop().props.terminal, "vps/t2", "remote menus keep the machine-qualified address");
+  f.state["agents.sort"] = "grouped";
+  f.state["agents.pins"] = ["t0"];
+  assert.deepEqual(strings(find(ag.render(cx), "ag-t0").items[1]), ["project 0", "· local task", "session title"], "pinned rows retain the space and tab in grouped view");
+  f.agents()[0].tab = "missing";
+  assert.deepEqual(strings(find(ag.render(cx), "ag-t0").items[1]), ["project 0", "· -", "session title"], "missing tab names use the gd fallback");
 }
 
 for (const width of [180, 200, 240, 268, 480]) {
@@ -199,11 +220,11 @@ for (const width of [180, 200, 240, 268, 480]) {
   f.agents()[0].status = "working";
   const t0 = f.terminals().find(k => k.address === "t0");
   t0.labels = { "pi.session": "mine" };
-  assert.ok(strings(find(ag.render(cx), "ag-t0")).includes("mine"), "a lone agent reads as its session, as in Focus");
+  assert.ok(strings(find(ag.render(cx), "ag-t0")).includes("local task"), "a session label does not replace the tab name");
   f.agents().push({ ...f.agents()[0], address: "t1", pane: "p1", seq: 1, focused: false });
   f.terminals().push({ address: "t1", state: "live", labels: { "pi.session": "theirs" } });
   const shared = ag.render(cx);
-  assert.ok(strings(find(shared, "ag-t0")).includes("mine") && strings(find(shared, "ag-t1")).includes("theirs"), "agents sharing a tab read as their own sessions");
+  assert.ok(strings(find(shared, "ag-t0")).includes("local task") && strings(find(shared, "ag-t1")).includes("local task"), "agents sharing a tab show the tab name");
   f.terminals().at(-1).labels = {};
   assert.ok(strings(find(ag.render(cx), "ag-t1")).includes("local task"), "without a session label it falls back to the tab");
   f.agents().pop(); f.terminals().pop(); delete t0.labels;
@@ -613,9 +634,9 @@ for (const width of [180, 200, 240, 268, 480]) {
   fire(find(menu, "sort-priority"), "on_click", {}, cx);
   assert.equal(f.state["agents.sort"], "priority");
   const byPriority = find(ag.render(cx), "ag-t0"), names = byPriority.items[1];
-  assert.deepEqual(strings(names), ["local task", "project 0", "-"], "without a space header the task leads and its space follows, above the session title");
-  const spaceName = names.items[0].items[1];
-  assert.deepEqual([spaceName.style.text_color, spaceName.style.text_size, spaceName.style.flex_shrink], [f.theme().dim, 12, 1000], "the space is dim, smaller, and gives way first");
+  assert.deepEqual(strings(names), ["project 0", "· local task", "-"], "without a space header the space leads and the tab follows, above the session title");
+  const tabName = names.items[0].items[1];
+  assert.deepEqual([tabName.style.text_color, tabName.style.text_size, tabName.style.flex_shrink], [f.theme().dim, 12, 1000], "the tab is dim, smaller, and gives way first");
 }
 
 {

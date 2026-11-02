@@ -3,8 +3,7 @@
 
 import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex, Button } from "gpui-base";
-import { agents, terminals, focused, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props } from "herdr";
-import { namer } from "./name.js";
+import { agents, terminals, spaces, focused, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props } from "herdr";
 const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
 // A sub-agent without a pane isn't in agents(): its raw word, error counting as
 // blocked. It's never done: it reports to its parent, and the parent's done is the news.
@@ -141,6 +140,15 @@ export default class Agents extends View {
     run("terminal.peek", { terminal: addr });
   }
 
+  sessionMenu(agent, cx) {
+    cx.stop_propagation();
+    const terminal = terminals().find(terminal => terminal.address === agent.address);
+    openOverlay({ mod: "agent-session-menu", kind: "popup", width: 260, at: "pointer", props: {
+      terminal: agent.address,
+      name: agentSessionName(agent, terminal),
+    } });
+  }
+
   // Live sub-agents of `addr`, depth first, each with the tree lines in front of it.
   tree(all, addr, lead = []) {
     const kids = all.filter((k) => k.parent === addr && k.state === "live");
@@ -174,6 +182,7 @@ export default class Agents extends View {
       .when(on, (el) => el.bg(t.selected))
       .when(!on, el => el.hover(s => s.bg(t.hover)))
       .on_click(() => this.peek(k.address))
+      .on_mouse_down("right", (_event, cx) => this.sessionMenu(k, cx))
       // Upstream's 9px turn, hung from each ancestor's icon center (17px, then every 20px), ending 4px short of this icon.
       .children(s.lines.flatMap((l, j) => [
         l === "│" || l === "├" ? div().absolute().left(16.25 + 20 * j).top(0).bottom(0).w(1.5).bg(t.input) : null,
@@ -252,18 +261,12 @@ export default class Agents extends View {
         .child(String(subs.length));
     };
 
-    // A row's detail is what the agent is on, as Focus, tabs and pane headers name it.
-    const label = namer();
-    const detail = new Map(list.map(a => [a.address, /^\d+$/.test(label(a)) ? null : label(a)]));
-    const seen = {};
-    for (const a of list) { const k = `${a.space_name}\u0000${detail.get(a.address) ?? ""}`; seen[k] = (seen[k] ?? 0) + 1; }
-    for (const a of list) {
-      if (detail.get(a.address) == null && seen[`${a.space_name}\u0000`] > 1) detail.set(a.address, label(a));
-    }
+    const tabs = spaces().flatMap(s => s.tabs);
+    const tabName = agent => tabs.find(tab => tab.id === agent.tab)?.name || "-";
 
     const row = (a, i, subs = []) => {
       const pic = icon(a.program, 16, t.foreground);
-      const more = detail.get(a.address);
+      const more = tabName(a);
       // An agent on another machine (`vps/t7`) says which.
       const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
       const idle = a.status === "idle" && !a.focused;
@@ -282,11 +285,9 @@ export default class Agents extends View {
           cx.notify();
         })
         .child(svg(`mods/workspace-chrome/${isPinned ? "pin-off" : "pin"}.svg`).size(14).flex_none());
-      // A row leads with what the agent is on; an automatic tab number says nothing.
-      // Without a space header above (priority, pinned) the space follows, dim, and gives way first.
       const full = byPriority || isPinned;
-      const name = full ? more ?? (a.space_name || label(a)) : more ?? (/^\d+$/.test(label(a)) ? a.program?.name || label(a) : label(a));
-      const where = full && more && a.space_name && a.space_name !== more ? a.space_name : null;
+      const name = full ? a.space_name || "-" : more;
+      const where = full && more ? `· ${more}` : null;
       // Hovering a parent turns its icon into the fold toggle, in the same fixed slot.
       const toggle = subs.length > 0 && this.hovered === a.address
         ? svg(`mods/workspace-chrome/chevron-${this.isFolded(a.address) ? "right" : "down"}.svg`).size(12).flex_none().text_color(t.foreground)
@@ -306,7 +307,7 @@ export default class Agents extends View {
         .items_center()
         .gap(8)
         .when(a.focused, (el) => el.bg(t.selected))
-        .role("button").accessibility_label(label(a) || a.program?.name || a.address)
+        .role("button").accessibility_label(name)
         .when(!a.focused, el => el.hover(s => s.bg(t.hover)))
         .on_hover((on, cx) => {
           if (on) this.hovered = a.address;
@@ -315,6 +316,7 @@ export default class Agents extends View {
         })
         // agent.focus, not pane.focus: in tabs it focuses the pane, and it picks what the agent view shows.
         .on_click(() => run("agent.focus", { terminal: a.address }))
+        .on_mouse_down("right", (_event, cx) => this.sessionMenu(a, cx))
         .child(h_flex().id(`agent-fold-${a.address}`).size(18).flex_none().items_center().justify_center()
           .when(subs.length > 0, el => el.accessibility_label(this.isFolded(a.address) ? "Expand sub-agents" : "Collapse sub-agents").on_click((_e, cx) => {
             cx.stop_propagation();
