@@ -72,7 +72,7 @@ export class Picker {
         .children(matches.map(repo => Checkbox.new(`source-pick-${repo.key}`).checked(this.selected.has(repo.key))
           .accessibility_label(`${repo.name}, ${repo.on ? `${repo.on}:` : ''}${repo.root}`).tooltip(repo.root)
           .px(9).py(10).gap(12).flex().items_center().rounded(5).hover(s => s.bg(t.hover))
-          .on_click((_event, cx) => { if (this.selected.has(repo.key)) this.selected.delete(repo.key); else this.selected.add(repo.key); cx.notify(); })
+          .on_change((checked, cx) => { if (checked) this.selected.add(repo.key); else this.selected.delete(repo.key); cx.notify(); })
           .child(div().w(16).h(16).flex_none().rounded(3).border_1().border_color(this.selected.has(repo.key) ? t.accent : t.input).bg(this.selected.has(repo.key) ? t.selected : t.chrome).text_size(11).text_color(t.accent).flex().items_center().justify_center().child(this.selected.has(repo.key) ? '✓' : ''))
           .child(v_flex().flex_1().min_w(0).gap(4).child(div().truncate().child(repo.name)).child(div().truncate().text_size(10).text_color(t.dim).child(repo.root)))))
         .when(matches.length === 0, el => el.child(message(this.loading ? 'Finding repositories…' : query ? 'No matching repositories.' : 'No repositories found. Add a folder to begin.'))))
