@@ -22,7 +22,8 @@ async function mainDiffHarness() {
       button() {}, input() {}, message() {}, dialog() {}, openDiscard() {}, action() {}, closeSourceDiff() {},
       showSourceTerminals() { returned++; },
     },
-    './diff.js': { diffRows() {} },
+    './diff.js': { diffRows() {}, wrapRows() {} },
+    './highlight.js': { languageFor() {} },
     './graph/graph.js': { Graph },
   };
   const module = new vm.SourceTextModule(await readFile(new URL('./dialogs.js', import.meta.url), 'utf8'), { context });

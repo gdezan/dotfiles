@@ -44,7 +44,8 @@ test('selecting and deselecting a discovered child repository updates the space'
       dialog: (_title, _subtitle, body, footer) => element().child(body).child(footer),
       openDiscard() {}, action() {}, closeSourceDiff() {}, showSourceTerminals() {},
     },
-    './diff.js': { diffRows() {} },
+    './diff.js': { diffRows() {}, wrapRows() {} },
+    './highlight.js': { languageFor() {} },
     './graph/graph.js': { Graph: class {} },
   };
   const context = vm.createContext({});

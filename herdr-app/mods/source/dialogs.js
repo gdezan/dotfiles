@@ -2,7 +2,8 @@ import { div } from 'gpui-kit';
 import { h_flex, v_flex, InputState, Checkbox, v_virtual_list, Scrollbar } from 'gpui-base';
 import { settings, pickFolder, setShared, shared, focused, closeOverlay } from 'herdr';
 import { git, selections, revision, invalidate, sourceTheme, button, input, message, dialog, openDiscard, action, closeSourceDiff, showSourceTerminals } from './ui.js';
-import { diffRows } from './diff.js';
+import { diffRows, wrapRows } from './diff.js';
+import { languageFor } from './highlight.js';
 import { Graph } from './graph/graph.js';
 
 export class Picker {
@@ -125,7 +126,7 @@ export class MainDiff {
 
 export class Diff {
   init(props, cx) {
-    this.props = props; this.mode = 'split'; this.rows = { unified: [], split: [], width: 0 }; this.width = 1000;
+    this.props = props; this.mode = 'split'; this.rows = { unified: [], split: [] }; this.width = 1000;
     this.seenRevision = revision();
     this.load(cx);
   }
@@ -137,7 +138,7 @@ export class Diff {
     cx.spawn(async cx => {
       try {
         const diff = await git.diff(repo, path, group);
-        this.rows = diffRows(diff.patch); this.binary = diff.binary; this.empty = diff.empty;
+        this.rows = diffRows(diff.patch, languageFor(path)); this.binary = diff.binary; this.empty = diff.empty;
       } catch (error) { this.error = String(error); }
       finally { this.loading = false; cx.notify(); }
     });
@@ -153,37 +154,75 @@ export class Diff {
     else closeOverlay(this.props.overlay);
   }
 
-  cell(row, width) {
+  // Syntax-colored text; changed words inside a paired line get a stronger tint.
+  code(line, kind) {
+    const t = sourceTheme(), emphasis = kind === 'added' ? t.diff_added_emphasis : t.diff_removed_emphasis;
+    return h_flex().flex_1().min_w(0).h_full().items_center().overflow_hidden().pr(16).children(line.segments.map(part => div().flex_none().whitespace_nowrap().text_color(t.syntax[part.kind] ?? t.syntax.plain)
+      .when(Boolean(part.emphasis), s => s.bg(emphasis).rounded(2)).child(part.text)));
+  }
+
+  gutter(number, kind, width) {
     const t = sourceTheme();
-    return h_flex().w(width).h(22).flex_none().gap(8)
-      .bg(!row ? t.raised : row.kind === 'added' ? t.diff_added_background : row.kind === 'removed' ? t.diff_removed_background : t.background)
-      .child(div().w(45).flex_none().text_right().text_color(t.dim).child(row?.number === undefined ? '' : String(row.number)))
-      .child(div().flex_1().min_w(0).truncate().text_color(t.foreground).child(row?.text || ' '));
+    return div().w(width).h_full().flex_none().flex().items_center().justify_end().pr(10)
+      .bg(kind === 'added' ? t.diff_added_gutter : kind === 'removed' ? t.diff_removed_gutter : t.background)
+      .text_color(kind === 'added' ? t.git_added : kind === 'removed' ? t.git_deleted : t.disabled)
+      .child(number === undefined ? '' : String(number));
+  }
+
+  sign(kind, continuation) {
+    const t = sourceTheme();
+    if (continuation) return div().w(18).h_full().flex_none();
+    return div().w(18).h_full().flex_none().flex().items_center().justify_center()
+      .text_color(kind === 'added' ? t.git_added : kind === 'removed' ? t.git_deleted : t.disabled)
+      .child(kind === 'added' ? '+' : kind === 'removed' ? '−' : '');
+  }
+
+  cell(line, width) {
+    const t = sourceTheme();
+    if (!line) return div().w(width).h(22).flex_none().bg(t.diff_filler);
+    const kind = line.kind ?? 'same';
+    return h_flex().w(width).h(22).flex_none()
+      .bg(kind === 'added' ? t.diff_added_background : kind === 'removed' ? t.diff_removed_background : t.background)
+      .child(this.gutter(line.number, kind, 56)).child(this.sign(kind, line.continuation)).child(this.code(line, kind));
   }
 
   row(row, halfWidth, fullWidth) {
     const t = sourceTheme();
-    if (row.kind === 'hunk' || row.kind === 'note') return div().h(22).w(fullWidth).px(14).bg(t.raised).text_color(t.dim).truncate().child(row.text);
+    if (row.kind === 'note') return h_flex().h(22).w(fullWidth).items_center().pl(74).bg(t.background).text_color(t.muted).child(row.text.replace(/^\\\s*/, ''));
+    if (row.kind === 'hunk') return h_flex().h(22).w(fullWidth).items_center().bg(t.diff_hunk_background).text_color(t.diff_hunk)
+      .child(div().w(this.mode === 'split' ? 74 : 98).flex_none().h_full().bg(t.diff_hunk_background))
+      .child(div().flex_none().whitespace_nowrap().pl(8).child(row.range ?? row.text))
+      .when(Boolean(row.context), el => el.child(div().flex_none().whitespace_nowrap().pl(12).text_color(t.muted).child(row.context)));
     if (this.mode === 'split') return h_flex().w(fullWidth).h(22).child(this.cell(row.left, halfWidth)).child(this.cell(row.right, halfWidth).border_l(1).border_color(t.border));
-    return h_flex().w(fullWidth).h(22).gap(8)
+    return h_flex().w(fullWidth).h(22)
       .bg(row.kind === 'added' ? t.diff_added_background : row.kind === 'removed' ? t.diff_removed_background : t.background)
-      .child(div().w(40).flex_none().text_right().text_color(t.dim).child(row.old === undefined ? '' : String(row.old)))
-      .child(div().w(40).flex_none().text_right().text_color(t.dim).child(row.next === undefined ? '' : String(row.next)))
-      .child(div().w(12).flex_none().text_color(row.kind === 'added' ? t.git_added : row.kind === 'removed' ? t.git_deleted : t.dim).child(row.kind === 'added' ? '+' : row.kind === 'removed' ? '−' : ' '))
-      .child(div().flex_1().min_w(0).truncate().text_color(t.foreground).child(row.text || ' '));
+      .child(this.gutter(row.old, row.kind, 48)).child(this.gutter(row.next, row.kind, 50))
+      .child(this.sign(row.kind, row.continuation)).child(this.code(row, row.kind));
   }
 
   render(cx) {
     if (this.seenRevision !== revision()) { this.seenRevision = revision(); this.load(cx); }
     const t = sourceTheme(), { repo, path, group, overlay } = this.props, staged = group === 'staged';
-    const rows = this.rows[this.mode === 'split' ? 'split' : 'unified'];
-    const longest = this.rows.width;
-    const halfWidth = Math.max(this.width / 2 - 1, Math.min(4000, longest) * 7 + 65);
-    const fullWidth = this.mode === 'split' ? halfWidth * 2 : Math.max(this.width, longest * 7 + 110);
+    // Like GitHub's split view and delta's side-by-side, the diff fits the view and
+    // long lines wrap, so neither mode scrolls sideways.
+    const fullWidth = Math.max(0, this.width - 2), halfWidth = Math.floor(fullWidth / 2);
+    const columns = Math.floor(((this.mode === 'split' ? halfWidth - 74 : fullWidth - 116) - 22) / (this.charWidth ?? 7.2));
+    const source = this.rows[this.mode === 'split' ? 'split' : 'unified'];
+    if (this.wrapped?.source !== source || this.wrapped.columns !== columns || this.wrapped.mode !== this.mode) {
+      this.wrapped = { source, columns, mode: this.mode, rows: wrapRows(source, this.mode, columns) };
+    }
+    const rows = this.wrapped.rows;
     const disabled = Boolean(this.busy || this.loading || this.error);
-    const modes = h_flex().gap(7).items_center()
-      .child(button('source-diff-split', 'Side by side', cx => { this.mode = 'split'; cx.notify(); }, { ghost: true }).bg(this.mode === 'split' ? t.selected : t.chrome).text_color(this.mode === 'split' ? t.foreground : t.muted))
-      .child(button('source-diff-unified', 'Unified', cx => { this.mode = 'unified'; cx.notify(); }, { ghost: true }).bg(this.mode === 'unified' ? t.selected : t.chrome).text_color(this.mode === 'unified' ? t.foreground : t.muted));
+    const segment = (id, label, value) => button(id, label, cx => { this.mode = value; cx.notify(); }, { ghost: true }).h(24).rounded(4)
+      .bg(this.mode === value ? t.surface : t.canvas).text_color(this.mode === value ? t.foreground : t.muted);
+    const stats = !this.rows.added && !this.rows.removed ? null : h_flex().gap(8).text_size(11).font_family(settings().font_family ?? 'JetBrains Mono')
+      .child(div().text_color(t.git_added).child(`+${this.rows.added}`))
+      .child(div().text_color(t.git_deleted).child(`−${this.rows.removed}`));
+    const modes = h_flex().gap(12).items_center()
+      .child(h_flex().p(2).gap(2).rounded(6).bg(t.canvas).border_1().border_color(t.border)
+        .child(segment('source-diff-split', 'Side by side', 'split'))
+        .child(segment('source-diff-unified', 'Unified', 'unified')))
+      .when(Boolean(stats), el => el.child(stats));
     const controls = h_flex().gap(7).items_center()
       .child(button('source-diff-refresh', 'Refresh', cx => this.load(cx), { disabled: Boolean(this.busy || this.loading) }))
       .when(!staged, el => el.child(button('source-diff-discard', 'Discard…', () => openDiscard(repo, path), { disabled, danger: true })))
@@ -191,17 +230,18 @@ export class Diff {
     const toolbar = v_flex().px(18).py(10).gap(7).border_b(1).border_color(t.border)
       .when(this.width < 470, el => el.child(modes).child(controls))
       .when(this.width >= 470, el => el.child(h_flex().gap(7).items_center().child(modes).child(div().flex_1()).child(controls)));
-    const labels = h_flex().bg(t.raised).border_b(1).border_color(t.border).text_size(10).text_color(t.muted)
+    const labels = h_flex().bg(t.chrome).border_b(1).border_color(t.border).text_size(10).text_color(t.muted)
       .when(this.mode === 'split', el => el
         .child(div().flex_1().px(18).py(9).child(staged ? 'HEAD · last commit' : 'INDEX · staged version'))
         .child(div().flex_1().px(18).py(9).border_l(1).border_color(t.border).child(staged ? 'INDEX · staged version' : 'WORKING TREE · on disk')))
       .when(this.mode === 'unified', el => el.child(div().px(18).py(9).child(staged ? 'HEAD → INDEX' : 'INDEX → WORKING TREE')));
     const content = v_flex().flex_1().min_h(0).child(toolbar)
       .child(div().flex_1().min_h(0).relative().bg(t.background).font_family(settings().font_family ?? 'JetBrains Mono').text_size(12)
-        .child(div().id('source-diff-horizontal').size_full().overflow_x_scrollbar()
-          .child(v_flex().w_full().min_w(fullWidth).h_full().child(labels).child(v_virtual_list(`source-diff-${this.mode}`, rows.length, 22, index => `${this.mode}-${index}`,
-            range => rows.slice(range.start, range.end).map(row => this.row(row, halfWidth, fullWidth))).flex_1().min_h(0))))
-        .child(Scrollbar.vertical(`source-diff-${this.mode}`).viewport_from_layout().absolute().inset_0())
+        .child(v_flex().size_full().overflow_hidden().child(labels).child(v_virtual_list(`source-diff-${this.mode}`, rows.length, 22, index => `${this.mode}-${index}`,
+          range => rows.slice(range.start, range.end).map(row => this.row(row, halfWidth, fullWidth))).flex_1().min_h(0)))
+        // Measures the code font so wrapping matches what is drawn.
+        .child(div().id('source-diff-measure').absolute().top(0).left(0).opacity(0).whitespace_nowrap().child('0'.repeat(100))
+          .on_size_change((size, cx) => { const width = size.width / 100; if (width > 0 && Math.abs(width - (this.charWidth ?? 0)) > 0.01) { this.charWidth = width; cx.notify(); } }))        .child(Scrollbar.vertical(`source-diff-${this.mode}`).viewport_from_layout().absolute().inset_0())
         .when(Boolean(this.loading || this.error || this.binary || !rows.length), el => el.child(div().absolute().top(15).left(8).max_w(850).child(message(this.loading ? 'Loading diff…' : this.error || (this.binary ? 'Binary file changed. No text diff is available.' : this.empty ? 'Empty untracked file. There is no text to compare.' : 'No text diff is available. The change may only affect a file mode or an empty file.'), this.error ? t.ansi1 : t.muted)))));
     const footer = this.rows.limited ? h_flex().px(18).py(10).border_t(1).border_color(t.border).text_size(10).text_color(t.muted)
       .child('Preview limited to 3,000 rows and 4,000 characters per line. File actions still apply to the entire file.') : null;

@@ -19,3 +19,17 @@ test('a multi-hunk Git patch renders aligned split rows, line numbers, and unifi
   assert.equal(split[6].left.number, 10);
   assert.equal(split[6].right.number, 11);
 });
+
+test('long lines wrap into continuation rows that keep their side and colors', async () => {
+  const { wrapRows } = await import('./diff.js');
+  const long = 'const value = alpha + beta + gamma + delta + epsilon;';
+  const { split, unified } = diffRows(`@@ -1 +1,2 @@\n-short\n+${long}\n+x\n`, 'c');
+  const rows = wrapRows(split, 'split', 24);
+  assert.equal(rows[0].kind, 'hunk');
+  assert.deepEqual(rows.slice(1).map(row => [row.left?.number, row.right?.number, row.right?.continuation]), [[1, 1, false], [undefined, undefined, true], [undefined, undefined, true], [undefined, 2, false]]);
+  assert.equal(rows.slice(1, 4).map(row => row.right.segments.map(part => part.text).join('')).join(''), long);
+  assert.ok(rows.slice(1, 4).every(row => row.right.segments.map(part => part.text).join('').length <= 24));
+  assert.equal(rows[2].left.kind, 'removed');
+  assert.deepEqual(rows[2].left.segments, []);
+  assert.equal(wrapRows(unified, 'unified', 24).filter(row => row.kind === 'added').length, 4);
+});

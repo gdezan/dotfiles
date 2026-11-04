@@ -12,7 +12,18 @@ export function sourceTheme() {
     accent: '#80CBC4', solid: '#245753', solid_hover: '#2C6660', solid_foreground: '#C7D6D6',
     ansi1: '#DB373E', ansi2: '#C3E88D', blocked: '#FFCB6B',
     git_added: '#00C8FF', git_modified: '#FC8B49', git_deleted: '#FF0000',
-    diff_added_background: '#00C8FF12', diff_removed_background: '#FF000012',
+    // gdezan-material's diff editor: git_added/git_deleted, `12` on the line and
+    // `22` on changed words; the gutter sits one step between them.
+    diff_hunk: '#82AAFF',
+    diff_added_background: '#00C8FF12', diff_added_gutter: '#00C8FF1C', diff_added_emphasis: '#00C8FF22',
+    diff_removed_background: '#FF000012', diff_removed_gutter: '#FF00001C', diff_removed_emphasis: '#FF000022',
+    diff_hunk_background: '#82AAFF14', diff_filler: '#15151A',
+    // Material syntax colors, matching the gdezan-material terminal theme.
+    syntax: {
+      plain: '#C7D6D6', keyword: '#C792EA', string: '#C3E88D', comment: '#6A737D', number: '#F78C6C',
+      constant: '#F78C6C', function: '#82AAFF', type: '#FFCB6B', property: '#B2CCD6', variable: '#F07178',
+      operator: '#89DDFF', punctuation: '#89DDFF', tag: '#F07178', attribute: '#FFCB6B', heading: '#82AAFF',
+    },
   };
 }
 
