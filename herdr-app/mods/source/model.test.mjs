@@ -9,7 +9,7 @@ async function harness() {
   const first = { key: 'first', name: 'First', root: '/merchant', gitDir: '/merchant/.git', on: null };
   const second = { key: 'second', name: 'Second', root: '/portal', gitDir: '/portal/.git', on: null };
   let focus = { space: 's1', tab: 'tb1', pane: 'p1', cwd: '/parent' };
-  const spaces = [{ id: 's1', active: true, machine: null, folder: '/parent', tabs: [{ id: 'tb1', name: 'First', active: true }, { id: 'tb2', name: 'Second' }] }];
+  const spaces = [{ id: 's1', name: 'Project', active: true, machine: null, folder: '/parent', tabs: [{ id: 'tb1', name: 'First', active: true }, { id: 'tb2', name: 'Second' }] }];
   const context = vm.createContext({ console });
   const input = { new({ value = '' } = {}) { return { text: value, events: {}, value() { return this.text; }, set_value(value) { this.text = value; }, on(name, fn) { this.events[name] = fn; }, release() {} }; } };
   const mocks = {
@@ -54,34 +54,81 @@ async function harness() {
   const panel = new Panel();
   // Watchers are deliberately not started; these checks exercise tab and mutation ownership.
   panel.watch = () => {};
-  return { panel, cx, store, first, second, state, git: ui.git, ui, calls, overlays, settle, setFocus(value) { focus = value; }, setLayout(value) { currentLayout = value; }, key: tab => JSON.stringify([null, 's1', tab]) };
+  return { panel, cx, store, first, second, state, spaces, git: ui.git, ui, calls, overlays, settle, setFocus(value) { focus = value; }, setLayout(value) { currentLayout = value; }, key: () => JSON.stringify([null, 's1']) };
 }
 
-test('tab selections persist independently, including explicit empty selection, and do not follow cwd', async () => {
+test('a space shares its pinned selection across tabs, including explicit empty selection', async () => {
   const h = await harness();
   h.panel.init({}, h.cx); await h.settle();
   assert.equal(h.panel.selected()[0].key, h.first.key);
-  h.store.set('source.tabs', { ...h.store.get('source.tabs'), [h.key('tb1')]: { cwd: '/parent', on: null, repositories: [] } });
+  h.store.set('source.spaces', { ...h.store.get('source.spaces'), [h.key('tb1')]: { cwd: '/parent', on: null, repositories: [], explicit: true } });
   h.panel.refresh(h.cx); await h.settle();
   assert.equal(h.panel.selected().length, 0);
   h.setFocus({ space: 's1', tab: 'tb2', pane: 'p2', cwd: '/portal' });
   h.panel.refresh(h.cx); await h.settle();
-  assert.equal(h.panel.selected()[0].key, h.second.key);
+  assert.equal(h.panel.selected().length, 0);
   h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/portal' });
   h.panel.refresh(h.cx); await h.settle();
   assert.equal(h.panel.selected().length, 0);
-  assert.equal(h.store.get('source.tabs')[h.key('tb1')].cwd, '/parent');
+  assert.equal(h.store.get('source.spaces')[h.key('tb1')].cwd, '/parent');
+});
+
+test('empty automatic discovery retries when the terminal folder changes', async () => {
+  const h = await harness(), resolved = [];
+  h.git.resolve = async cwd => {
+    resolved.push(cwd);
+    if (cwd === '/parent') throw new Error('not a git repository');
+    return h.second;
+  };
+  h.panel.init({}, h.cx); await h.settle();
+  h.panel.refresh(h.cx); await h.settle();
+  assert.deepEqual(resolved, ['/parent']);
+  h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/portal' });
+  h.panel.refresh(h.cx); await h.settle();
+  assert.deepEqual(resolved, ['/parent', '/portal']);
+  assert.equal(h.panel.selected()[0].key, h.second.key);
+  h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/elsewhere' });
+  h.panel.refresh(h.cx); await h.settle();
+  assert.deepEqual(resolved, ['/parent', '/portal']);
+});
+
+test('first discovery prefers the space project over a different focused terminal folder', async () => {
+  const h = await harness();
+  h.spaces[0].name = 'portal';
+  h.panel.init({}, h.cx); await h.settle();
+  assert.equal(h.panel.selected()[0].key, h.second.key);
+});
+
+test('different spaces keep independent repository pins', async () => {
+  const h = await harness();
+  h.panel.init({}, h.cx); await h.settle();
+  h.spaces.push({ id: 's2', name: 'Other', machine: null, folder: '/portal', tabs: [{ id: 'tb3', active: true }] });
+  h.setFocus({ space: 's2', tab: 'tb3', cwd: '/portal' });
+  h.panel.refresh(h.cx); await h.settle();
+  assert.equal(h.panel.selected()[0].key, h.second.key);
+  h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/parent' });
+  assert.equal(h.panel.selected()[0].key, h.first.key);
+});
+
+test('re-detection replaces the space pin using the focused terminal', async () => {
+  const h = await harness();
+  h.panel.init({}, h.cx); await h.settle();
+  h.setFocus({ space: 's1', tab: 'tb2', pane: 'p2', cwd: '/portal' });
+  h.panel.redetect(h.cx); await h.settle();
+  assert.equal(h.panel.selected()[0].key, h.second.key);
+  h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/parent' });
+  assert.equal(h.panel.selected()[0].key, h.second.key);
 });
 
 test('interrupted initialization resumes from the pinned discovery folder rather than a later cwd', async () => {
   const h = await harness();
-  h.store.set('source.tabs', { [h.key('tb1')]: { cwd: '/parent', on: null, initializing: true, repositories: [] } });
+  h.store.set('source.spaces', { [h.key('tb1')]: { cwd: '/parent', on: null, initializing: true, repositories: [] } });
   const resolved = [];
   h.git.resolve = async cwd => { resolved.push(cwd); return h.first; };
   h.setFocus({ space: 's1', tab: 'tb1', pane: 'p1', cwd: '/portal' });
   h.panel.init({}, h.cx); await h.settle();
   assert.deepEqual(resolved, ['/parent']);
-  assert.equal(h.store.get('source.tabs')[h.key('tb1')].initializing, false);
+  assert.equal(h.store.get('source.spaces')[h.key('tb1')].initializing, false);
 });
 
 test('an in-flight commit stays on its captured checkout after tab/cwd changes and preserves a newer draft', async () => {

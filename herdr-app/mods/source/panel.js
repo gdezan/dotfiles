@@ -17,7 +17,8 @@ export function contextOf() {
   if (!space || !tab) return null;
   const terminals = panes().filter(pane => pane.tab === tab.id && pane.cwd);
   const cwd = terminals.find(pane => pane.pane === focus?.pane)?.cwd || (focus?.tab === tab.id ? focus.cwd : null) || terminals[0]?.cwd || space.folder;
-  return { key: JSON.stringify([space.machine, space.id, tab.id]), name: tab.name, on: space.machine, cwd };
+  const project = panes().find(pane => space.tabs.some(tab => tab.id === pane.tab) && pane.cwd?.replace(/\\/g, '/').replace(/\/$/, '').split('/').pop() === space.name);
+  return { key: JSON.stringify([space.machine, space.id]), name: space.name, on: space.machine, cwd: project?.cwd || cwd, focusedCwd: cwd };
 }
 
 export default class Panel {
@@ -42,19 +43,27 @@ export default class Panel {
 
   initialize(context, cx) {
     const saved = selections()[context.key];
-    if (!context.cwd || (saved && !saved.initializing) || git.initializing.has(context.key)) return;
+    const retry = saved && !saved.initializing && !saved.explicit && !saved.repositories.length && saved.cwd !== context.cwd;
+    if (!context.cwd || (saved && !saved.initializing && !retry) || git.initializing.has(context.key)) return;
     git.initializing.add(context.key); this.initializing.add(context.key);
-    const initial = saved ?? { cwd: context.cwd, on: context.on, repositories: [], initializing: true };
-    setShared('source.tabs', { ...selections(), [context.key]: initial });
+    const initial = saved && !retry ? saved : { cwd: context.cwd, on: context.on, repositories: [], initializing: true };
+    setShared('source.spaces', { ...selections(), [context.key]: initial });
     cx.spawn(async cx => {
       let repositories = [], error = null;
       try { repositories = [await git.resolve(initial.cwd, initial.on)]; }
       catch (e) { if (!/not a git repository/i.test(String(e))) error = String(e); }
       const current = selections()[context.key];
-      if (current?.initializing) setShared('source.tabs', { ...selections(), [context.key]: { ...current, repositories, initializing: false, error } });
+      if (current?.initializing) setShared('source.spaces', { ...selections(), [context.key]: { ...current, repositories, initializing: false, error } });
       git.initializing.delete(context.key); this.initializing.delete(context.key);
       this.refresh(cx); cx.notify();
     });
+  }
+
+  redetect(cx) {
+    const context = contextOf();
+    if (!context?.focusedCwd || git.initializing.has(context.key)) return;
+    setShared('source.spaces', { ...selections(), [context.key]: { cwd: context.focusedCwd, on: context.on, repositories: [], initializing: true } });
+    this.refresh(cx);
   }
 
   refresh(cx) {
@@ -144,7 +153,7 @@ export default class Panel {
   picker(context) {
     const saved = selections()[context.key];
     openOverlay({ mod: 'source', kind: 'dialog', modal: true, width: 620, height: .77,
-      props: { view: 'picker', tabKey: context.key, name: context.name, cwd: saved?.cwd || context.cwd, on: saved?.on ?? context.on, selected: saved?.repositories ?? [] } });
+      props: { view: 'picker', spaceKey: context.key, name: context.name, cwd: saved?.cwd || context.cwd, on: saved?.on ?? context.on, selected: saved?.repositories ?? [] } });
   }
 
   group(entry, group) {
@@ -215,7 +224,7 @@ export default class Panel {
   }
 
   render(cx) {
-    const context = contextOf(), token = context?.key;
+    const context = contextOf(), token = JSON.stringify([context?.key, context?.cwd]);
     if (this.context !== token || this.seenRevision !== revision()) {
       this.context = token; this.seenRevision = revision(); this.refresh(cx);
     }
@@ -226,8 +235,9 @@ export default class Panel {
       .child(h_flex().h(48).flex_none().px(14).gap(9).items_center().border_b(1).border_color(t.border)
         .child(svg('mods/source/source.svg').size(16).text_color(t.muted))
         .child(div().font_semibold().child('Source Control')).child(div().flex_1())
+        .child(sourceIconButton('source-redetect', 'source', 'Re-detect repositories from focused terminal and replace this space’s selection', cx => this.redetect(cx), !context || Boolean(saved?.initializing)))
         .child(sourceIconButton('source-refresh', 'refresh', 'Refresh source control', cx => this.refresh(cx)))
-        .child(button('source-select', `${selected.length} ${selected.length === 1 ? 'repository' : 'repositories'} ⌄`, () => this.picker(context), { ghost: true, disabled: !context || Boolean(saved?.initializing), tooltip: 'Choose repositories for this tab' })))
+        .child(button('source-select', `${selected.length} ${selected.length === 1 ? 'repository' : 'repositories'} ⌄`, () => this.picker(context), { ghost: true, disabled: !context || Boolean(saved?.initializing), tooltip: 'Choose repositories for this space' })))
       .child(v_flex().id('source-repositories').flex_1().min_h(0).overflow_y_scrollbar().pb(18)
         .when(selected.length === 0, el => el.child(v_flex().p(16).gap(10)
           .child(div().font_semibold().child(saved?.initializing ? 'Finding repository…' : 'No repositories selected'))

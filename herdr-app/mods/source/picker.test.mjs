@@ -29,7 +29,7 @@ function find(node, id) {
   return null;
 }
 
-test('selecting and deselecting a discovered child repository updates the tab', async () => {
+test('selecting and deselecting a discovered child repository updates the space', async () => {
   const repository = { key: '/parent/child', name: 'child', root: '/parent/child', on: null };
   const store = new Map();
   const cx = { notify() {} };
@@ -39,7 +39,7 @@ test('selecting and deselecting a discovered child repository updates the tab', 
     'gpui-base': { h_flex: () => element(), v_flex: () => element(), InputState: inputState, Checkbox: { new: id => element(id) }, v_virtual_list() {}, Scrollbar: {} },
     herdr: { settings() {}, pickFolder() {}, setShared: (key, value) => store.set(key, value), shared: key => store.get(key), focused() {}, closeOverlay() {} },
     './ui.js': {
-      git: {}, selections: () => store.get('source.tabs') ?? {}, revision() {}, invalidate() {}, sourceTheme: () => ({}),
+      git: {}, selections: () => store.get('source.spaces') ?? {}, revision() {}, invalidate() {}, sourceTheme: () => ({}),
       button: () => element(), input: () => element(), message: () => element(),
       dialog: (_title, _subtitle, body, footer) => element().child(body).child(footer),
       openDiscard() {}, action() {}, closeSourceDiff() {}, showSourceTerminals() {},
@@ -58,7 +58,7 @@ test('selecting and deselecting a discovered child repository updates the tab', 
   });
   await module.evaluate();
   const picker = new module.namespace.Picker();
-  picker.props = { cwd: '/parent', name: 'tab', on: null, tabKey: 'tab' };
+  picker.props = { cwd: '/parent', name: 'space', on: null, spaceKey: 'space' };
   picker.repositories = [repository];
   picker.selected = new Set();
   picker.search = inputState.new();
@@ -71,8 +71,9 @@ test('selecting and deselecting a discovered child repository updates the tab', 
   };
   change(true);
   picker.apply();
-  assert.equal(store.get('source.tabs').tab.repositories[0].key, repository.key);
+  assert.equal(store.get('source.spaces').space.repositories[0].key, repository.key);
   change(false);
   picker.apply();
-  assert.equal(store.get('source.tabs').tab.repositories.length, 0);
+  assert.equal(store.get('source.spaces').space.repositories.length, 0);
+  assert.equal(store.get('source.spaces').space.explicit, true);
 });

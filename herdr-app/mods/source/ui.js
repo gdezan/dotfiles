@@ -17,7 +17,7 @@ export function sourceTheme() {
 }
 
 export const git = new GitSource(exec, readTextFile, window()?.platform);
-export const selections = () => shared('source.tabs') ?? {};
+export const selections = () => shared('source.spaces') ?? {};
 export const revision = () => shared('source.revision');
 export const invalidate = () => setShared('source.revision', `${Date.now()}-${Math.random()}`);
 

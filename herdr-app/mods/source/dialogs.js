@@ -55,9 +55,9 @@ export class Picker {
   }
 
   apply() {
-    const current = selections()[this.props.tabKey];
-    setShared('source.tabs', { ...selections(), [this.props.tabKey]: {
-      ...current, cwd: current?.cwd ?? this.props.cwd, on: this.props.on, initializing: false, error: null,
+    const current = selections()[this.props.spaceKey];
+    setShared('source.spaces', { ...selections(), [this.props.spaceKey]: {
+      ...current, cwd: current?.cwd ?? this.props.cwd, on: this.props.on, initializing: false, explicit: true, error: null,
       repositories: this.repositories.filter(repo => this.selected.has(repo.key)),
     } });
     invalidate(); closeOverlay(this.props.overlay);
@@ -85,7 +85,7 @@ export class Picker {
       .child(button('source-add-folder', this.adding ? 'Adding…' : '+ Add folder…', cx => this.add(cx), { disabled: this.adding }))
       .child(div().flex_1()).child(div().text_size(11).text_color(t.muted).child(`${this.selected.size} selected`))
       .child(button('source-apply-selection', 'Apply selection', () => this.apply(), { primary: true, disabled: this.adding }));
-    return dialog(`Repositories for ${this.props.name}`, null, body, footer, this.props.overlay).h_full();
+    return dialog(`Repositories for space ${this.props.name}`, null, body, footer, this.props.overlay).h_full();
   }
 
   close() { this.search.release(); this.path.release(); }
