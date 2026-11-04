@@ -109,6 +109,33 @@ Run `make herdr-test` for deployment and mod checks. The bundled
 `rename-latency.test.mjs` is a machine-specific integration probe, not part of
 that target; it requires its configured Pi, hc and SSH setup.
 
+## PowerShell on Windows
+
+`powershell/profile.ps1` is the source of the PowerShell profile. To use it,
+create `$PROFILE` if necessary and add a dot-source line pointing to this
+checkout (adjust the path if it moves):
+
+```powershell
+. 'C:\Users\gdezan\Projetos\dotfiles\powershell\profile.ps1'
+```
+
+The profile loads the repository's `starship.toml` and initializes installed
+optional tools: eza (`ls` and `ll`), zoxide, Carapace, PSFzf and Terminal-Icons.
+`ls` outputs eza's text, not PowerShell objects; use `Get-ChildItem` or `gci`
+for object pipelines. Icons require a Nerd Font. PSReadLine supplies inline history
+predictions and menu completion; PSFzf binds Ctrl+T and Ctrl+R.
+
+Install the executables with `winget install --id <id> --exact` using
+`Starship.Starship`, `eza-community.eza`, `junegunn.fzf`, `ajeetdsouza.zoxide`,
+`rsteube.Carapace`, `dandavison.delta`, `sharkdp.bat`, and `GitHub.cli`.
+Install the PowerShell modules with `Install-Module PSFzf,Terminal-Icons -Scope
+CurrentUser`. Open a new terminal after installation to refresh PATH. Delta can
+be enabled as Git's pager with `git config --global core.pager delta` (check for
+an existing pager first); GitHub CLI requires `gh auth login` for authenticated
+operations. These Git settings and credentials are not managed by the profile.
+Run `pwsh -NoProfile -File tests/powershell-profile-test.ps1` to smoke-test the
+profile.
+
 ## Shell configuration
 
 `fish/config.fish`, `.zshrc`, `zsh/zshenv`, `starship.toml` and
