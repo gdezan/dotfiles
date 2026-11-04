@@ -3,7 +3,7 @@
 
 import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, terminals, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout } from "herdr";
+import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout } from "herdr";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -24,6 +24,14 @@ function toggleSidebar() {
   // Mods edited before the rail went by width still read the flag.
   setShared("sidebar.collapsed", !narrow());
   run("layout.resize", { id: "sidebar", px: narrow() ? (shared("sidebar.width") ?? 268) : window()?.platform === "macos" ? 76 : 44 });
+}
+
+function liveFolder(terminal, pane) {
+  return pane?.cwd || terminal?.foreground?.cwd || terminal?.cwd || "";
+}
+
+function folderTitle(folder) {
+  return folder.replace(/\\/g, "/").replace(/\/$/, "").split("/").pop() || folder || "-";
 }
 
 function agentSessionName(agent, terminal) {
@@ -196,7 +204,7 @@ export default class Agents extends View {
         .when(l === "└" || l === "├", el => el.border_b(1.5).rounded_bl(6))))
       .when(Boolean(pic), el => el.child(div().mr(8).child(pic)))
       .child(v_flex().flex_1().min_w(0).gap(2)
-        .child(div().truncate().text_color(on ? t.foreground : t.muted).child(k.name || k.template || k.program?.name || k.address))
+        .child(div().truncate().text_color(on ? t.foreground : t.muted).child(folderTitle(liveFolder(k))))
         .child(div().truncate().text_size(11).text_color(t.muted).child(agentSessionName(k, k))))
       .child(this.status(t, { status: st }, compact));
   }
@@ -267,6 +275,7 @@ export default class Agents extends View {
         .when(!open, (el) => el.child(String(subs.length)));
     };
 
+    const livePanes = panes();
     const tabs = spaces().flatMap(s => s.tabs);
     const tabName = (agent) => tabs.find(tab => tab.id === agent.tab)?.name || "-";
 
@@ -310,9 +319,12 @@ export default class Agents extends View {
         })
         .child(svg(`mods/workspace-chrome/${isPinned ? "pin-off" : "pin"}.svg`).size(13));
       const full = byPriority || isPinned;
-      const name = full ? a.space_name || "-" : more;
+      const terminal = all.find(terminal => terminal.address === a.address);
+      const folder = liveFolder(terminal, livePanes.find(pane => pane.terminal === a.address));
+      const name = folder ? folderTitle(folder) : a.space_name || "-";
       return h_flex()
         .id(`ag-${a.address}`)
+        .tooltip(`${a.space_name || "-"} · ${more}${folder ? `\n${folder}` : ""}`)
         .px(8)
         .h(46)
         .flex_none()
@@ -339,7 +351,7 @@ export default class Agents extends View {
           .child(h_flex().min_w(0).gap(5).items_center()
             .child(div().flex_none().max_w(full && more ? 120 : 200).truncate().text_color(idle ? t.muted : t.foreground).child(name))
             .when(full && Boolean(more), el => el.child(div().flex_1().min_w(0).truncate().text_color(t.dim).child(`\u00b7 ${more}`))))
-          .child(div().truncate().text_size(11).text_color(t.muted).child(agentSessionName(a, all.find(terminal => terminal.address === a.address)))))
+          .child(div().truncate().text_size(11).text_color(t.muted).child(agentSessionName(a, terminal))))
         .when(Boolean(machine), el => el.child(div().text_size(10).text_color(t.dim).child(machine)))
         .when(subs.length > 0, el => el.child(fold(a, subs)))
         .when(this.hovered === a.address, el => el.child(pin))
