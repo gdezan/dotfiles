@@ -18,7 +18,7 @@ export function sessionMenuItems(terminal, name) {
     { id: "copy-address", label: "Copy terminal address", icon: "copy", enabled: Boolean(terminal?.address) },
     { id: "rename", label: "Rename session…", icon: "square-pen", enabled: live && !blocked && Boolean(sessionRenameCommand(terminal)), hint: "Available for Pi and Claude Code unless waiting for permission or an answer" },
     { id: "interrupt", label: "Interrupt agent", icon: "square", enabled: live && terminal.status === "working" },
-    { id: "stop", label: "Stop session…", icon: "x", enabled: live },
+    { id: "stop", label: "Stop session", icon: "x", enabled: live },
   ];
 }
 
@@ -64,11 +64,7 @@ export default class AgentSessionMenu extends View {
     } else if (item.id === "rename") {
       openOverlay({ mod: "agent-session-menu", kind: "dialog", width: 420, height: 220, props: { terminal: p.terminal, name: p.name, rename: true } });
     } else if (item.id === "stop") {
-      openOverlay({ mod: "confirm", kind: "dialog", width: 440, height: 210, props: {
-        title: "Stop session?",
-        detail: `End ${p.name && p.name !== "-" ? `“${p.name}” (${p.terminal})` : p.terminal} and its sub-agents? Running work will be interrupted and its terminal will close.`,
-        command: { name: "terminal.kill", args: { terminal: p.terminal } },
-      } });
+      run("terminal.kill", { terminal: p.terminal });
     }
   }
 

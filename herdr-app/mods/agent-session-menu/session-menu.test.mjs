@@ -29,9 +29,15 @@ function setup(status = 'idle') {
 let menu = setup();
 menu.choose(2, cx);
 assert.equal(calls.find(c => c[0] === 'clipboard')[1], 'remote/t9');
-menu = setup(); menu.choose(5, cx);
-assert.equal(calls.find(c => c[0] === 'open')[1].props.command.args.terminal, 'remote/t9');
-assert.equal(calls.some(c => c[0] === 'run' || c[0] === 'exec'), false, 'stop must only open confirmation');
+for (const address of ['remote/t9', 't9']) {
+  menu = setup(); terminal.address = address; p.terminal = address;
+  menu.choose(5, cx);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [
+    ['close', 'menu-1'],
+    ['run', 'terminal.kill', { terminal: address }],
+  ], 'stop must close the menu and immediately kill its target without a confirmation');
+  assert.equal(context.items(terminal, p.name).find(item => item.id === 'stop').label, 'Stop session');
+}
 menu = setup(); menu.input = { value: () => 'New session name' }; menu.rename(cx); await pending;
 assert.deepEqual(Array.from(calls.find(c => c[0] === 'exec')[2]), ['exec', '--on', 'remote', 'hc', 'send', 't9', '/name New session name']);
 menu = setup(); terminal.report.app = 'claude-code'; menu.input = { value: () => 'New name' }; menu.rename(cx); await pending;
@@ -53,7 +59,7 @@ assert.equal(calls.length, 0, 'multiline rename must not send');
 menu = setup('working'); menu.choose(4, cx); await pending;
 assert.deepEqual(Array.from(calls.find(c => c[0] === 'exec')[2]), ['interrupt', 'remote/t9']);
 menu = setup(); terminal = undefined; menu.choose(5, cx);
-assert.equal(calls.length, 0, 'ended terminal must not open stop');
+assert.equal(calls.length, 0, 'ended terminal must not be stopped');
 menu = setup(); terminal.report.app = 'unknown-agent';
 assert.equal(context.items(terminal, p.name).find(i => i.id === 'rename').enabled, false);
 menu = setup(); terminal = undefined; p.name = '-'; menu.at = 0; menu.render(cx);
