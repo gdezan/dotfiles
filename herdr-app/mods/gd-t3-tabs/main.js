@@ -129,7 +129,8 @@ export default class Tabs extends View {
       const mine = ps.filter(p => p.tab === c.id);
       const lead = mine.find(p => p.status != null) ?? mine.find(p => p.focused) ?? mine[0];
       const program = lead?.program;
-      const name = c.named ? c.name : lead ? title(lead) : "Terminal";
+      const agent = agents().find(agent => agent.address === lead?.terminal);
+      const name = agent ? title(agent) : c.named ? c.name : lead ? title(lead) : "Terminal";
       return h_flex().id(`tab-${c.id}`).h(28).px(8).gap(8).rounded(6).items_center().flex_none().text_size(13)
         .bg(c.active ? t.selected : t.chrome).text_color(c.active ? t.foreground : t.muted)
         .when(!c.active, el => el.hover(s => s.bg(t.hover)))

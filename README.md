@@ -116,6 +116,11 @@ Herdr home with `{"atuin":"/absolute/path/to/atuin"}`. This machine-specific fil
 is ignored by Git and preserved during deployment; it is not copied to other
 machines. The popup can also be opened through `mod.open:atuin-threads`.
 
+In `gd-t3`, agent-backed tabs and pane headers use the session name from the
+sidebar agent row: Pi's reported session message, or another agent's title.
+Named shell-only tabs keep their custom names. A tab with multiple panes uses
+its lead agent's name; each pane header shows its own agent's name.
+
 The old Sessions button is hidden in `gd-t3`; the mod remains installed for `gd`.
 The Sessions panel lists local Pi, Claude Code and Cursor conversations across
 projects. It opens a session in a matching local space, or creates a space for

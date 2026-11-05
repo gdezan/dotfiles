@@ -647,11 +647,30 @@ for (const width of [180, 200, 240, 268, 480]) {
   assert.equal(find(root, "tab-b0").hoverStyle.bg, undefined);
   assert.equal(find(root, "tab-other").hoverStyle.bg, f.theme().hover);
   assert.equal(find(root, "tab-scroll").style.gap, 4);
-  // A tab nobody named reads as its agent, the name its pane header and Focus card show.
-  Object.assign(first, { name: "1", named: false });
-  f.terminals().find(k => k.address === "t0").labels = { "pi.session": "mine" };
-  assert.ok(strings(find(f.load("gd-t3-tabs").render(cx), "tab-b0")).includes("mine"), "an unnamed tab reads as its agent's session");
-  assert.ok(strings(f.load("gd-t3-pane", { pane: "p0" }).render(cx)).includes("mine"), "its pane header reads the same");
+  const terminal = f.terminals().find(k => k.address === "t0");
+  terminal.labels = { "pi.session": "stale session label" };
+  terminal.report = { app: "pi", msg: "mine" };
+  const agentSessionText = () => strings(find(f.load("gd-t3-agents").render(cx), "ag-t0"))[1];
+  const assertSessionLabels = expected => {
+    assert.equal(agentSessionText(), expected);
+    assert.ok(strings(find(f.load("gd-t3-tabs").render(cx), "tab-b0")).includes(expected), "the tab matches the sidebar session, even with a named tab");
+    assert.ok(strings(f.load("gd-t3-pane", { pane: "p0" }).render(cx)).includes(expected), "the pane header matches the sidebar session");
+  };
+  assertSessionLabels("mine");
+  terminal.report.msg = "renamed session";
+  assertSessionLabels("renamed session");
+  terminal.report.msg = "  ";
+  assertSessionLabels("-");
+  f.agents()[0].app = "claude";
+  f.agents()[0].title = "Claude session";
+  assertSessionLabels("Claude session");
+  delete f.agents()[0].app;
+  terminal.report.msg = "mine";
+
+  const shell = { pane: "shell-pane", terminal: "shell", tab: "other", title: "bash", program: { key: "bash", name: "Bash" } };
+  f.panes().push(shell);
+  f.spaces()[0].tabs.find(tab => tab.id === "other").named = true;
+  assert.ok(strings(find(f.load("gd-t3-tabs").render(cx), "tab-other")).includes("other task"), "named shell tabs keep their explicit name");
 
   // The agent view: a "view" stack in the layout; the bar names the agent shown instead of listing tabs.
   assert.equal(find(f.load("gd-t3-tabs").render(cx), "view-toggle"), null, "no view stack, no toggle");
