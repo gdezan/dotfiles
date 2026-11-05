@@ -17,7 +17,8 @@ chmod +x "$tmp/bin/npm"
 export PATH="$tmp/bin:$PATH"
 printf 'old layout\n' > "$HERDR_APP_HOME/layouts/gd.json"
 printf 'old t3 layout\n' > "$HERDR_APP_HOME/layouts/gd-t3.json"
-mkdir -p "$HERDR_APP_HOME/mods/gd-t3-tabs"
+mkdir -p "$HERDR_APP_HOME/mods/gd-t3-tabs" "$HERDR_APP_HOME/mods/atuin-threads"
+printf '{"atuin":"/machine-local/atuin"}\n' > "$HERDR_APP_HOME/mods/atuin-threads/local.json"
 printf 'old t3 mod\n' > "$HERDR_APP_HOME/mods/gd-t3-tabs/main.js"
 printf 'old mod\n' > "$HERDR_APP_HOME/mods/agents-session/main.js"
 printf 'local extra\n' > "$HERDR_APP_HOME/mods/agents-session/extra"
@@ -32,9 +33,13 @@ for mod in gd-t3-agents gd-t3-chrome gd-t3-focus gd-t3-new-menu gd-t3-pane gd-t3
     cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
     cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
 done
-for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source; do
+for mod in agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source atuin-threads; do
     cmp "$repo/herdr-app/mods/$mod/main.js" "$HERDR_APP_HOME/mods/$mod/main.js"
     cmp "$repo/herdr-app/mods/$mod/mod.json" "$HERDR_APP_HOME/mods/$mod/mod.json"
+done
+grep -qx '{"atuin":"/machine-local/atuin"}' "$HERDR_APP_HOME/mods/atuin-threads/local.json"
+for file in threads.svg LICENSE; do
+    cmp "$repo/herdr-app/mods/atuin-threads/$file" "$HERDR_APP_HOME/mods/atuin-threads/$file"
 done
 cmp "$repo/herdr-app/mods/menu-hc/copy.svg" "$HERDR_APP_HOME/mods/menu-hc/copy.svg"
 for file in git.js panel.js dialogs.js ui.js diff.js highlight.js source.svg close.svg; do

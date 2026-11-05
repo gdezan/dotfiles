@@ -4,10 +4,11 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 source_dir="$repo/herdr-app"
 app_home=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
 backup_root="$HOME/.local/state/dotfiles-backups"
-mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source
+mods=(agents-session agent-session-menu usage-tabs provider-usage session-history menu-hc source atuin-threads
     gd-t3-agents gd-t3-chrome gd-t3-focus gd-t3-new-menu gd-t3-pane gd-t3-spaces gd-t3-tabs)
 layouts=(layouts/gd.json layouts/gd-t3.json layouts/gd-t3.svg)
-required=("${layouts[@]}" gd-t3-keys.json T3-LICENSE)
+required=("${layouts[@]}" gd-t3-keys.json atuin-threads-keys.json T3-LICENSE
+    mods/atuin-threads/threads.svg mods/atuin-threads/LICENSE)
 for mod in "${mods[@]}"; do
     required+=("mods/$mod/main.js" "mods/$mod/mod.json")
 done
@@ -73,6 +74,9 @@ for mod in "${mods[@]}"; do
     cp -R "$source_dir/mods/$mod" "$stage/mods/$mod"
     rm -f "$stage/mods/$mod/gpui-kit.d.ts" "$stage/mods/$mod/jsconfig.json"
 done
+if [[ -f "$app_home/mods/atuin-threads/local.json" || -L "$app_home/mods/atuin-threads/local.json" ]]; then
+    cp -a "$app_home/mods/atuin-threads/local.json" "$stage/mods/atuin-threads/local.json"
+fi
 rm -rf "$stage/mods/session-history/node_modules"
 (cd "$stage/mods/session-history" && npm ci --omit=optional --legacy-peer-deps --ignore-scripts --no-audit --no-fund)
 backup=$(mktemp -d "$backup_root/herdr-$(date +%Y%m%d-%H%M%S)-XXXXXXXX")

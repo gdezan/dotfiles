@@ -178,7 +178,6 @@ export default class Tabs extends View {
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("source"), el => el.child(panelButton("source", "Source", "mods/source/source.svg")))
       .child(panelButton("usage", "Usage", "mods/provider-usage/usage.svg"))
-      .child(panelButton("sessions", "Sessions", "mods/workspace-chrome/clock.svg"))
       .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/gd-t3-tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
         .child(button("maximize", w.platform === "windows" ? svg(`mods/gd-t3-tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
         .child(button("close-window", w.platform === "windows" ? svg("mods/gd-t3-tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));

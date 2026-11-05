@@ -29,6 +29,11 @@ To enable the `gd-t3` keyboard shortcuts on another machine, merge the
 existing bindings. These shortcuts switch the sidebar (`Cmd+Shift+B`), toggle
 single-agent view (`Cmd+Shift+A`), and settle an agent in Focus (`Cmd+Shift+S`).
 
+For Atuin Threads, merge the `global` section from
+`herdr-app/atuin-threads-keys.json` into your keys without replacing other bindings.
+`Cmd+Shift+T` (`Super+Shift+T` on Linux) opens the popup; `Ctrl+Shift+T`
+can remain bound to new tabs.
+
 Deploy to another machine over SSH when that machine has no clone of this
 repository:
 
@@ -99,6 +104,19 @@ accept an absolute path. The first view of a tab automatically selects its curre
 repository if cwd is inside one; explicitly selected lists stay pinned when cwd
 changes. Prior saved Changes-panel selections are mapped to Source.
 
+[Atuin Threads](https://github.com/atuinsh/herdr-atuin-threads) is bundled at
+commit `6e2786d1ae7555cbe4c338c55c265badc86812cb`, with its MIT license in
+`herdr-app/mods/atuin-threads/LICENSE`. It lists captured agent sessions by
+current repository or across all projects. Click to resume in a new tab;
+Shift-click to fork. It runs local `atuin`, `git`, and `test` commands.
+Resuming may restore transcripts from Atuin sync and launch the session's agent.
+Install Atuin 18.24.3 or later and enable threads (`atuin config enable threads`).
+If Herdr cannot find `atuin`, create `mods/atuin-threads/local.json` under your
+Herdr home with `{"atuin":"/absolute/path/to/atuin"}`. This machine-specific file
+is ignored by Git and preserved during deployment; it is not copied to other
+machines. The popup can also be opened through `mod.open:atuin-threads`.
+
+The old Sessions button is hidden in `gd-t3`; the mod remains installed for `gd`.
 The Sessions panel lists local Pi, Claude Code and Cursor conversations across
 projects. It opens a session in a matching local space, or creates a space for
 its original folder. Cursor titles are generic, and the list can include active
