@@ -62,8 +62,21 @@ function updatedLabel(time, now) {
 
 export default class ProviderUsage extends View {
   init(_props, cx) {
-    this.context = undefined; this.state = "loading"; this.rows = []; this.expanded = false; this.request = 0; this.installing = {};
+    this.context = undefined; this.state = "loading"; this.rows = []; this.expanded = false; this.request = 0; this.installing = {}; this.nodeCommands = new Map();
     cx.timer.every(60000, (cx) => { if (panelVisible()) this.refresh(cx); });
+  }
+  async execNode(args, on) {
+    const key = on ?? "", command = this.nodeCommands.get(key) ?? "node";
+    try {
+      return await exec(command, args, { on });
+    } catch (error) {
+      if (!String(error).includes(`cannot start ${command}:`)) throw error;
+      const resolved = await exec("sh", ["-c", `exec "\${SHELL:-/bin/sh}" -ilc 'node -p process.execPath'`], { on }).catch(() => null);
+      const node = resolved?.stdout.trim().split(/\r?\n/).pop();
+      if (resolved?.code !== 0 || !/^(\/|[A-Za-z]:[\\/])/.test(node ?? "")) throw error;
+      this.nodeCommands.set(key, node);
+      return exec(node, args, { on });
+    }
   }
   refresh(cx, force = false) {
     const on = selectedMachine(), key = on ?? "";
@@ -73,7 +86,7 @@ export default class ProviderUsage extends View {
     this.loading = key;
     cx.spawn(async (cx) => {
       try {
-        const result = await exec("node", ["--experimental-strip-types", "--no-warnings", "-e", CHECK_READER], { on });
+        const result = await this.execNode(["--experimental-strip-types", "--no-warnings", "-e", CHECK_READER], on);
         if (this.context !== key || this.request !== request) return;
         if (result.code === 42) { this.state = "missing"; this.rows = []; }
         else if (result.code !== 0) { this.state = "error"; this.error = "Could not run the usage reader. Check the installation and try again."; }
@@ -97,15 +110,15 @@ export default class ProviderUsage extends View {
           const contents = await readTextFile(`${appHome()}/mods/provider-usage/reader/${file}`);
           if (contents === null) throw new Error(`Missing installer file ${file}`);
           for (let offset = 0; offset < contents.length; offset += 5000) {
-            const result = await exec("node", ["-e", INSTALL_PART, stage, file, contents.slice(offset, offset + 5000), offset === 0 ? "1" : "0"], { on });
+            const result = await this.execNode(["-e", INSTALL_PART, stage, file, contents.slice(offset, offset + 5000), offset === 0 ? "1" : "0"], on);
             if (result.code !== 0) throw new Error("Could not write the usage reader on this machine");
           }
         }
-        const result = await exec("node", ["-e", FINISH_INSTALL, stage], { on });
+        const result = await this.execNode(["-e", FINISH_INSTALL, stage], on);
         if (result.code !== 0) throw new Error("Could not finish installing. A usage reader folder may already exist on this machine.");
         if (this.context === key) { this.state = "loading"; this.refresh(cx, true); }
       } catch (error) {
-        await exec("node", ["-e", CLEAN_INSTALL, stage], { on }).catch(() => {});
+        await this.execNode(["-e", CLEAN_INSTALL, stage], on).catch(() => {});
         if (this.context === key) { this.state = "missing"; this.error = String(error); }
       }
       finally { delete this.installing[key]; cx.notify(); }

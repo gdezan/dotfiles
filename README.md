@@ -68,6 +68,8 @@ Herdr separately if desired.
 
 The Usage panel runs a bundled reader on the active space's machine. Install
 Node.js 22.19 or later there, then use the panel's install button when prompted.
+If Node is absent from Herdr's PATH, the panel resolves it through that machine's
+interactive login shell, supporting shell-managed installations such as fnm.
 The reader uses credentials already configured on that machine; credentials
 are not part of this repository. An existing installed reader is not updated by
 deploying the mod, so reader upgrades need a separate, deliberate update.
