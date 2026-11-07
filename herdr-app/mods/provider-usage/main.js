@@ -10,7 +10,7 @@ const PROVIDER_LOGOS = {
   copilot: ["icons/copilot.svg", false], antigravity: ["icons/antigravity.svg", true],
   deepseek: ["mods/provider-usage/deepseek.svg", false],
 };
-const CHECK_READER = `const fs=require('node:fs'),path=require('node:path'),os=require('node:os');const p=path.join(os.homedir(),'.config','herdr-usage','index.ts');if(!fs.existsSync(p))process.exit(42);import(require('node:url').pathToFileURL(p).href)`;
+const CHECK_REMOTE_READER = `const fs=require('node:fs'),path=require('node:path'),os=require('node:os');const config=path.join(os.homedir(),'.config');const app=process.env.HERDR_APP_HOME||path.join(config,'herdr-app');const p=[path.join(app,'mods','provider-usage','reader','index.ts'),path.join(config,'herdr-usage','index.ts')].find(p=>fs.existsSync(p));if(!p)process.exit(42);import(require('node:url').pathToFileURL(p).href)`;
 const INSTALL_PART = `const fs=require('node:fs'),p=require('node:path'),os=require('node:os');const [stage,file,part,first]=process.argv.slice(1);const dir=p.join(os.homedir(),'.config',stage);fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(p.join(dir,file),part,{flag:first==='1'?'wx':'a'});`;
 const FINISH_INSTALL = `const fs=require('node:fs'),p=require('node:path'),os=require('node:os');const base=p.join(os.homedir(),'.config');fs.renameSync(p.join(base,process.argv[1]),p.join(base,'herdr-usage'));`;
 const CLEAN_INSTALL = `require('node:fs').rmSync(require('node:path').join(require('node:os').homedir(),'.config',process.argv[1]),{recursive:true,force:true});`;
@@ -86,9 +86,12 @@ export default class ProviderUsage extends View {
     this.loading = key;
     cx.spawn(async (cx) => {
       try {
-        const result = await this.execNode(["--experimental-strip-types", "--no-warnings", "-e", CHECK_READER], on);
+        const args = ["--experimental-strip-types", "--no-warnings"];
+        if (on) args.push("-e", CHECK_REMOTE_READER);
+        else args.push(`${appHome()}/mods/provider-usage/reader/index.ts`);
+        const result = await this.execNode(args, on);
         if (this.context !== key || this.request !== request) return;
-        if (result.code === 42) { this.state = "missing"; this.rows = []; }
+        if (on && result.code === 42) { this.state = "missing"; this.rows = []; }
         else if (result.code !== 0) { this.state = "error"; this.error = "Could not run the usage reader. Check the installation and try again."; }
         else {
           const report = JSON.parse(result.stdout);
@@ -102,7 +105,7 @@ export default class ProviderUsage extends View {
   }
   install(cx) {
     const on = selectedMachine(), key = on ?? "", stage = `herdr-usage-install-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-    if (this.installing[key]) return;
+    if (!on || this.installing[key]) return;
     this.installing[key] = true; this.error = null;
     cx.spawn(async (cx) => {
       try {

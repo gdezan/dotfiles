@@ -13,17 +13,24 @@ const report = { version: 1, rows: [] };
 const reader = `console.log(${JSON.stringify(JSON.stringify(report))});\n`;
 
 async function usageFixture(t, { installed = true, nodeOnPath = false } = {}) {
-  const home = await mkdtemp(join(tmpdir(), 'herdr-usage-node-'));
-  t.after(() => rm(home, { recursive: true, force: true }));
-  const bin = join(home, 'node bin');
+  const root = await mkdtemp(join(tmpdir(), 'herdr-usage-node-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const home = join(root, 'local home'), remoteHome = join(root, 'remote home');
+  const appHome = join(home, "Herdr app # ü's");
+  const bundle = join(appHome, 'mods/provider-usage/reader');
+  await mkdir(bundle, { recursive: true });
+  await mkdir(remoteHome);
+  await writeFile(join(bundle, 'index.ts'), reader);
+  await writeFile(join(bundle, 'package.json'), '{"type":"module"}');
+  const bin = join(root, 'node bin');
   await mkdir(bin);
   await symlink(process.execPath, join(bin, 'node'));
-  const shell = join(home, 'login-shell');
+  const shell = join(root, 'login-shell');
   await writeFile(shell, `#!/bin/sh\nexport PATH='${bin}':/usr/bin:/bin\nexec /bin/sh "$@"\n`, { mode: 0o700 });
   if (installed) {
-    await mkdir(join(home, '.config/herdr-usage'), { recursive: true });
-    await writeFile(join(home, '.config/herdr-usage/index.ts'), reader);
-    await writeFile(join(home, '.config/herdr-usage/package.json'), '{"type":"module"}');
+    await mkdir(join(remoteHome, '.config/herdr-usage'), { recursive: true });
+    await writeFile(join(remoteHome, '.config/herdr-usage/index.ts'), reader);
+    await writeFile(join(remoteHome, '.config/herdr-usage/package.json'), '{"type":"module"}');
   }
   const calls = [];
   let machine = null;
@@ -31,7 +38,7 @@ async function usageFixture(t, { installed = true, nodeOnPath = false } = {}) {
     calls.push({ command, args, on: options?.on });
     try {
       const result = await runFile(command, args, {
-        env: { ...process.env, HOME: home, SHELL: shell, PATH: nodeOnPath ? `${bin}:/usr/bin:/bin` : '/usr/bin:/bin' },
+        env: { ...process.env, HOME: options?.on ? remoteHome : home, SHELL: shell, PATH: nodeOnPath ? `${bin}:/usr/bin:/bin` : '/usr/bin:/bin' },
         timeout: 10000,
       });
       return { ...result, code: 0 };
@@ -48,7 +55,7 @@ async function usageFixture(t, { installed = true, nodeOnPath = false } = {}) {
     'gpui-kit': { View: class {}, div() {}, svg() {}, image() {} },
     'gpui-base': { v_flex() {}, h_flex() {} },
     herdr: {
-      exec, appHome: () => home, layout() {}, theme() {},
+      exec, appHome: () => appHome, layout() {}, theme() {},
       spaces: () => [{ active: true, machine }],
       readTextFile: async path => path.endsWith('/index.ts') ? reader : path.endsWith('/package.json') ? '{"type":"module"}' : '\n',
     },
@@ -65,7 +72,7 @@ async function usageFixture(t, { installed = true, nodeOnPath = false } = {}) {
   const view = new module.namespace.default();
   view.init({}, cx);
   const drain = async () => { while (tasks.length) await tasks.shift(); };
-  return { home, view, calls, cx, drain, selectMachine: value => { machine = value; } };
+  return { home, remoteHome, root, bundle, view, calls, cx, drain, selectMachine: value => { machine = value; } };
 }
 
 test('Usage reads through shell-managed Node with no node in the app PATH, locally and remotely', posixOnly, async t => {
@@ -75,31 +82,81 @@ test('Usage reads through shell-managed Node with no node in the app PATH, local
     const start = fixture.calls.length;
     fixture.view.refresh(fixture.cx);
     await fixture.drain();
-    assert.equal(fixture.view.state, 'ready', fixture.view.error);
+    assert.equal(fixture.view.state, 'ready', fixture.view.error ?? 'Usage should be ready');
     assert.ok(fixture.calls.slice(start).every(call => call.on === machine));
   }
   fixture.selectMachine(null);
   fixture.view.refresh(fixture.cx);
   await fixture.drain();
-  assert.equal(fixture.view.state, 'ready', fixture.view.error);
+  assert.equal(fixture.view.state, 'ready', fixture.view.error ?? 'Usage should be ready');
   assert.equal(fixture.calls.filter(call => call.command === 'sh').length, 2);
 });
 
-test('Usage installs and then reads with shell-managed Node', posixOnly, async t => {
+test('Local Usage ignores the legacy reader and uses bundled updates without installation', posixOnly, async t => {
   const fixture = await usageFixture(t, { installed: false });
+  await mkdir(join(fixture.home, '.config/herdr-usage'), { recursive: true });
+  await writeFile(join(fixture.home, '.config/herdr-usage/index.ts'), 'throw new Error("Stale local reader must not run");');
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'ready', fixture.view.error);
+  const updated = { version: 1, rows: [{ id: 'updated', name: 'Bundled update' }] };
+  await writeFile(join(fixture.bundle, 'index.ts'), `console.log(${JSON.stringify(JSON.stringify(updated))});`);
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'ready', fixture.view.error);
+  assert.equal(fixture.view.rows[0].name, 'Bundled update');
+  await fixture.view.install(fixture.cx);
+  await fixture.drain();
+  assert.equal(await readFile(join(fixture.home, '.config/herdr-usage/index.ts'), 'utf8'), 'throw new Error("Stale local reader must not run");');
+});
+
+test('Remote Usage prefers its own bundled reader without a standalone install', posixOnly, async t => {
+  const fixture = await usageFixture(t, { installed: false });
+  const bundle = join(fixture.remoteHome, '.config/herdr-app/mods/provider-usage/reader');
+  await mkdir(bundle, { recursive: true });
+  await writeFile(join(bundle, 'package.json'), '{"type":"module"}');
+  const remoteReport = { version: 1, rows: [{ id: 'remote', name: 'Remote bundled reader' }] };
+  await writeFile(join(bundle, 'index.ts'), `console.log(${JSON.stringify(JSON.stringify(remoteReport))});`);
+  fixture.selectMachine('remote');
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'ready', fixture.view.error ?? 'Remote bundle should be available');
+  assert.equal(fixture.view.rows[0].name, 'Remote bundled reader');
+  await mkdir(join(fixture.remoteHome, '.config/herdr-usage'));
+  await writeFile(join(fixture.remoteHome, '.config/herdr-usage/index.ts'), 'throw new Error("Stale remote reader must not run");');
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'ready', fixture.view.error ?? 'Remote bundle should take priority');
+  fixture.selectMachine(null);
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'ready', fixture.view.error ?? 'Local bundle should be available');
+  assert.equal(fixture.view.rows.length, 0);
+  await writeFile(join(fixture.remoteHome, '.config/herdr-usage/index.ts'), reader);
+  await writeFile(join(bundle, 'index.ts'), 'throw new Error("Broken bundle must not use an old fallback");');
+  fixture.selectMachine('remote');
+  fixture.view.refresh(fixture.cx);
+  await fixture.drain();
+  assert.equal(fixture.view.state, 'error');
+  assert.match(fixture.view.error, /Could not run the usage reader/);
+});
+
+test('Remote Usage installs and then reads with shell-managed Node', posixOnly, async t => {
+  const fixture = await usageFixture(t, { installed: false });
+  fixture.selectMachine('remote');
   fixture.view.refresh(fixture.cx);
   await fixture.drain();
   assert.equal(fixture.view.state, 'missing', fixture.view.error);
   fixture.view.install(fixture.cx);
   await fixture.drain();
   assert.equal(fixture.view.state, 'ready', fixture.view.error);
-  assert.equal(await readFile(join(fixture.home, '.config/herdr-usage/index.ts'), 'utf8'), reader);
+  assert.equal(await readFile(join(fixture.remoteHome, '.config/herdr-usage/index.ts'), 'utf8'), reader);
   assert.equal(fixture.calls.filter(call => call.command === 'sh').length, 1);
 });
 
 test('Usage preserves the original launch error when shell discovery fails', posixOnly, async t => {
   const fixture = await usageFixture(t);
-  await rm(join(fixture.home, 'login-shell'));
+  await rm(join(fixture.root, 'login-shell'));
   fixture.view.refresh(fixture.cx);
   await fixture.drain();
   assert.equal(fixture.view.state, 'error');
@@ -108,7 +165,7 @@ test('Usage preserves the original launch error when shell discovery fails', pos
 
 test('Usage does not retry a reader that starts but exits unsuccessfully', posixOnly, async t => {
   const fixture = await usageFixture(t, { nodeOnPath: true });
-  await writeFile(join(fixture.home, '.config/herdr-usage/index.ts'), 'process.exit(1);');
+  await writeFile(join(fixture.bundle, 'index.ts'), 'process.exit(1);');
   fixture.view.refresh(fixture.cx);
   await fixture.drain();
   assert.equal(fixture.view.state, 'error');

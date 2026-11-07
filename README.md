@@ -66,13 +66,18 @@ machine-local and are not copied.
 The `iss` settings use LythMonoTerm Nerd Font; install it and select it in
 Herdr separately if desired.
 
-The Usage panel runs a bundled reader on the active space's machine. Install
-Node.js 22.19 or later there, then use the panel's install button when prompted.
-If Node is absent from Herdr's PATH, the panel resolves it through that machine's
-interactive login shell, supporting shell-managed installations such as fnm.
-The reader uses credentials already configured on that machine; credentials
-are not part of this repository. An existing installed reader is not updated by
-deploying the mod, so reader upgrades need a separate, deliberate update.
+The Usage panel runs the reader on the selected space's machine using that
+machine's credentials. Local spaces run the reader bundled with the mod. Remote
+spaces prefer `~/.config/herdr-app/mods/provider-usage/reader/index.ts` (or the
+remote `HERDR_APP_HOME` equivalent), falling back to `~/.config/herdr-usage` only
+when no bundled reader exists. The install button appears only when neither
+remote reader exists. Deploying the mod updates the bundled reader; standalone
+remote installations still need a separate, deliberate update. Credentials are
+not part of this repository.
+
+Install Node.js 22.19 or later wherever the reader runs. If Node is absent from
+Herdr's PATH, the panel resolves it through that machine's interactive login
+shell, supporting shell-managed installations such as fnm.
 
 The Source panel replaces Changes in `gd`. It remembers repository selections per
 Herdr tab, scans immediate child folders, and lets you add another checkout.
